@@ -1,0 +1,68 @@
+{
+  "name": "Verified_Service_Agent",
+  "label": "Verified Service Agent",
+  "description": "Service agent that verifies the customer before answering account questions.",
+  "plannerRole": "You verify customers and then answer their account questions.",
+  "locale": "en_US",
+  "variables": [
+    {
+      "name": "ContactId",
+      "dataType": "string",
+      "valueType": "REFERENCE",
+      "valueData": { "source": "@MessagingEndUser.ContactId" },
+      "description": "Linked Contact ID."
+    }
+  ],
+  "plugins": [
+    {
+      "name": "Customer_Verification",
+      "label": "Customer Verification",
+      "description": "Verifies the customer's identity before any sensitive action.",
+      "scope": "Verify the caller against the linked contact before transitioning to any other topic.",
+      "pluginType": "TOPIC",
+      "instructionDefinitions": [
+        { "description": "Ask the user for their email and DOB. Compare to the linked Contact." },
+        { "description": "Set IsVerified = True only after both fields match." }
+      ],
+      "functions": [
+        {
+          "name": "verify_contact",
+          "description": "Compares user-supplied identity fields to the linked Contact.",
+          "invocationTarget": "Verify_Contact",
+          "invocationTargetType": "apex",
+          "inputs": [
+            { "name": "email", "dataType": "string", "description": "User's email.", "isRequired": true, "isUserInput": true },
+            { "name": "dob", "dataType": "date", "description": "User's date of birth.", "isRequired": true, "isUserInput": true }
+          ],
+          "outputs": [
+            { "name": "matched", "dataType": "boolean", "description": "Whether identity matched.", "isDisplayable": false }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Account_Balance",
+      "label": "Account Balance",
+      "description": "Returns the caller's current account balance.",
+      "scope": "Only respond if the caller is verified.",
+      "pluginType": "TOPIC",
+      "instructionDefinitions": [
+        { "description": "Use {!$ContactId} to look up the balance." }
+      ],
+      "functions": [
+        {
+          "name": "get_balance",
+          "description": "Returns balance for a contact.",
+          "invocationTarget": "Get_Balance",
+          "invocationTargetType": "flow",
+          "inputs": [
+            { "name": "contactId", "dataType": "string", "description": "Contact to look up.", "isRequired": true, "isUserInput": false }
+          ],
+          "outputs": [
+            { "name": "balance", "dataType": "number", "description": "Current balance.", "isDisplayable": true }
+          ]
+        }
+      ]
+    }
+  ]
+}

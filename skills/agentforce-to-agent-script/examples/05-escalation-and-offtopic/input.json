@@ -1,0 +1,38 @@
+{
+  "name": "Acme_Support_Agent",
+  "label": "Acme Support Agent",
+  "description": "Support agent for Acme — answers product questions and escalates when needed.",
+  "plannerRole": "You answer Acme product questions and escalate when the user asks for a human or when you are unsure.",
+  "locale": "en_US",
+  "plugins": [
+    {
+      "name": "Product_FAQ",
+      "label": "Product FAQ",
+      "description": "Answers common product questions.",
+      "scope": "Use only the knowledge base; refuse other topics.",
+      "pluginType": "TOPIC",
+      "instructionDefinitions": [
+        { "description": "Search the KB before answering." }
+      ],
+      "functions": [
+        {
+          "name": "search_kb",
+          "description": "Searches the product knowledge base.",
+          "invocationTarget": "Product_KB",
+          "invocationTargetType": "retriever",
+          "inputs": [
+            { "name": "query", "dataType": "string", "description": "Search query.", "isRequired": true, "isUserInput": true }
+          ],
+          "outputs": [
+            { "name": "results", "dataType": "string", "description": "KB excerpts.", "isDisplayable": true }
+          ]
+        }
+      ]
+    }
+  ],
+  "_conversionOptions": {
+    "autoAddEscalationTopic": true,
+    "autoAddOffTopicTopic": true,
+    "autoAddAmbiguousTopic": true
+  }
+}

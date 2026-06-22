@@ -1,0 +1,1269 @@
+{
+  "plannerTypeInfo" : {
+    "namespace" : null,
+    "name" : "AiCopilot__ReAct",
+    "id" : null,
+    "customMetadata" : null,
+    "engine" : null,
+    "endpoint" : null,
+    "prompts" : [ {
+      "name" : "AiCopilot__ReactFocusPrompt",
+      "id" : null,
+      "model" : {
+        "name" : "sfdc_ai__DefaultGPT4Omni_11_20",
+        "id" : "llmgateway__GPT4Omni_11_20"
+      }
+    }, {
+      "name" : "AiCopilot__ReactInitialPrompt",
+      "id" : null,
+      "model" : {
+        "name" : "sfdc_ai__DefaultGPT4Omni_11_20",
+        "id" : "llmgateway__GPT4Omni_11_20"
+      }
+    }, {
+      "name" : "AiCopilot__ReactOutputErrorPrompt",
+      "id" : null,
+      "model" : {
+        "name" : "sfdc_ai__DefaultGPT4Omni_11_20",
+        "id" : "llmgateway__GPT4Omni_11_20"
+      }
+    }, {
+      "name" : "AiCopilot__ReactTopicPrompt",
+      "id" : null,
+      "model" : {
+        "name" : "sfdc_ai__DefaultGPT4Omni_11_20",
+        "id" : "llmgateway__GPT4Omni_11_20"
+      }
+    }, {
+      "name" : "AiCopilot__ReactGeneralErrorHandlingPrompt",
+      "id" : null,
+      "model" : {
+        "name" : "sfdc_ai__DefaultGPT4Omni_11_20",
+        "id" : "llmgateway__GPT4Omni_11_20"
+      }
+    }, {
+      "name" : "AiCopilot__ReactValidationPrompt",
+      "id" : null,
+      "model" : {
+        "name" : "sfdc_ai__DefaultGPT4Omni_11_20",
+        "id" : "llmgateway__GPT4Omni_11_20"
+      }
+    } ]
+  },
+  "plannerToneType" : "CASUAL",
+  "locale" : "en_US",
+  "secondaryLocales" : [ "es", "es_MX" ],
+  "plannerRole" : "You are a Service Agent responsible to handle client request related to support Cases, Order Status, Account information and general FAQ related questions.",
+  "plannerCompany" : "Your company produces and manufactures Solar Panels.",
+  "adlPlannerConfigurations" : [ {
+    "ragFeatureId" : "1JeKc00000000G4KAI",
+    "ragFeatureName" : "AiRagFeaturePromptContent_1cc3acca_f785_451c_864f_3fd5703947da",
+    "ragFeatureNamespace" : null,
+    "ragFeatureFullyQualifiedName" : "AiRagFeaturePromptContent_1cc3acca_f785_451c_864f_3fd5703947da",
+    "adlConfiguration" : {
+      "aiGroundLibraryLabel" : "Tmobile",
+      "aiGroundingLibraryId" : "1JDKc0000008OjGOAU",
+      "aiGroundingLibraryName" : "Tmobile",
+      "aiGroundingLibraryNamespace" : null,
+      "aiGroundingLibraryFullyQualifiedName" : "Tmobile",
+      "referencedRetrievers" : [ {
+        "name" : "File_Tmobile_1Cx_shr6995d70f",
+        "namespace" : null,
+        "dataspace" : "default",
+        "fullyQualifiedName" : "File_Tmobile_1Cx_shr6995d70f",
+        "groundingSourceType" : "SFDRIVE",
+        "externalSource" : null
+      } ]
+    }
+  } ],
+  "id" : "16jKc0000004Cqw",
+  "name" : "Agentforce_Service_Agent",
+  "label" : "Agentforce Service Agent",
+  "description" : "Deliver personalized customer interactions with an autonomous AI agent. Agentforce Service Agent intelligently supports your customers with common inquiries and escalates complex issues. #AllowMarkdown#",
+  "userLocation" : "United States",
+  "voiceConfig" : null,
+  "plugins" : [ {
+    "id" : "179Kc0000004HuXIAU",
+    "name" : "General_Web_Search_16jKc0000004Cqw",
+    "localDevName" : "General_Web_Search",
+    "source" : null,
+    "tierQualifier" : "CUSTOM",
+    "label" : "General Web Search",
+    "description" : "This topic is about enabling the agent to perform real-time web searches to obtain specific information about things but not about company policy, rules or anything related to this company. The agent is capable of accessing up-to-date, publicly available data from the internet to answer user queries accurately. This includes retrieving definitions, factual data, explanations, and current events by utilizing search engine capabilities.",
+    "scope" : "Your job is limited to accessing publicly available and non-confidential information. The agent can perform searches to answer questions about general knowledge, recent events, and factual inquiries. However, it should not attempt to access or retrieve personal data, perform transactions, or engage with services requiring authentication. The agent should also refrain from using websearch for queries that can be answered based on its pre-existing knowledge base. Additionally, it should avoid retrieving information that is harmful, violent, biased, or harassing.",
+    "workflowConfig" : null,
+    "pluginType" : "TOPIC",
+    "instructionDefinitions" : [ {
+      "name" : "instruction_ifthecusto4",
+      "label" : "instruction_ifthecusto4",
+      "description" : "If the customer's question is too vague or general, ask for more details and clarification to give a better answer."
+    }, {
+      "name" : "instruction_determinei1",
+      "label" : "instruction_determinei1",
+      "description" : "Determine if the user's query requires fresh data that may not be available in the pre-existing knowledge base, such as recent news, factual updates, or specific information about an entity."
+    }, {
+      "name" : "instruction_ifyouareun5",
+      "label" : "instruction_ifyouareun5",
+      "description" : "If you are unable to help the customer even after asking clarifying questions, ask if they want to escalate this issue to a live agent."
+    }, {
+      "name" : "instruction_ensurethat2",
+      "label" : "instruction_ensurethat2",
+      "description" : "Ensure that the information retrieved is not harmful, violent, biased, or harassing the customer."
+    }, {
+      "name" : "instruction_ifmultiple3",
+      "label" : "instruction_ifmultiple3",
+      "description" : "If multiple sources provide conflicting information, highlight this to the user and provide the most reliable sources."
+    }, {
+      "name" : "instruction_includesou6",
+      "label" : "instruction_includesou6",
+      "description" : "Include sources in your response when available from the knowledge articles, otherwise proceed without them."
+    }, {
+      "name" : "instruction_onlyusepub0",
+      "label" : "instruction_onlyusepub0",
+      "description" : "Summarize and present the information in an understandable format, ensuring relevance to the original query."
+    } ],
+    "utteranceDefinitions" : [ ],
+    "functions" : [ {
+      "type" : "InvocableFunction",
+      "billingStatus" : "BILLABLE",
+      "isBillable" : true,
+      "tierQualifier" : "STANDARD",
+      "usageType" : null,
+      "requireUserConfirmation" : false,
+      "requireUserVerification" : false,
+      "includeInProgressIndicator" : true,
+      "progressIndicatorMessage" : "Getting answers",
+      "invocationTargetType" : "standardInvocableAction",
+      "invocationTargetName" : "streamKnowledgeSearch",
+      "invocationTargetId" : "streamKnowledgeSearch",
+      "input" : null,
+      "inputType" : {
+        "required" : [ "query" ],
+        "unevaluatedProperties" : false,
+        "type" : "object",
+        "properties" : {
+          "query" : {
+            "title" : "Query",
+            "description" : "Required. A string created by generative AI to be used in the knowledge article search.",
+            "type" : "string",
+            "$ref" : "#/$defs/lightning__textType",
+            "lightning:type" : "lightning__textType",
+            "lightning:isPII" : false,
+            "copilotAction:isUserInput" : true
+          },
+          "citationsUrl" : {
+            "title" : "Citations Url",
+            "description" : "The URL to use for citations for custom Agents.",
+            "type" : "string",
+            "$ref" : "#/$defs/lightning__textType",
+            "lightning:type" : "lightning__textType",
+            "lightning:isPII" : false,
+            "copilotAction:isUserInput" : true
+          },
+          "ragFeatureConfigId" : {
+            "title" : "RAG Feature Configuration Id",
+            "description" : "The RAG Feature ID to use for grounding this copilot action invocation.",
+            "type" : "string",
+            "const" : "AiRagFeaturePromptContent_1cc3acca_f785_451c_864f_3fd5703947da",
+            "$ref" : "#/$defs/lightning__textType",
+            "lightning:type" : "lightning__textType",
+            "lightning:isPII" : false,
+            "copilotAction:isUserInput" : true
+          },
+          "citationsEnabled" : {
+            "title" : "Citations Enabled",
+            "description" : "Whether or not citations are enabled.",
+            "type" : "boolean",
+            "const" : false,
+            "$ref" : "#/$defs/lightning__booleanType",
+            "lightning:type" : "lightning__booleanType",
+            "lightning:isPII" : false,
+            "copilotAction:isUserInput" : true
+          },
+          "mode" : {
+            "title" : "The mode to run in.",
+            "description" : "The mode to use (Professor/Smart/Basic). Determines which prompt template to use.",
+            "type" : "string",
+            "$ref" : "#/$defs/lightning__textType",
+            "lightning:type" : "lightning__textType",
+            "lightning:isPII" : false,
+            "copilotAction:isUserInput" : false
+          },
+          "retrieverMode" : {
+            "title" : "The retriever mode to use.",
+            "description" : "The retriever mode to use (Simple/Augmented). Determines whether to do query regeneration",
+            "type" : "string",
+            "$ref" : "#/$defs/lightning__textType",
+            "lightning:type" : "lightning__textType",
+            "lightning:isPII" : false,
+            "copilotAction:isUserInput" : false
+          }
+        },
+        "$ref" : "#/$defs/lightning__objectType",
+        "lightning:type" : "lightning__objectType",
+        "lightning:textIndexed" : true,
+        "$schema" : "sfdc://metaschema/lightning__copilotActionInput",
+        "$defs" : {
+          "lightning__textType" : {
+            "title" : "Text",
+            "description" : "Represents a text value.",
+            "type" : "string",
+            "maxLength" : 255,
+            "lightning:textIndexed" : true,
+            "lightning:supportsPersonalization" : true,
+            "sfdc_cms:interop" : {
+              "invocableAction" : [ "picklistSelections" ]
+            },
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__booleanType" : {
+            "title" : "Boolean",
+            "description" : "Represents a true or false value.",
+            "type" : "boolean",
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__objectType" : {
+            "title" : "Object",
+            "description" : "Represents a complex data structure with multiple fields.",
+            "type" : "object",
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          }
+        }
+      },
+      "output" : null,
+      "outputType" : {
+        "unevaluatedProperties" : false,
+        "type" : "object",
+        "properties" : {
+          "knowledgeSummary" : {
+            "title" : "Knowledge Summary",
+            "description" : "A string formatted as rich text that includes a summary of the information retrieved from the knowledge articles and citations to those articles.",
+            "type" : "string",
+            "maxLength" : 100000,
+            "$ref" : "#/$defs/lightning__richTextType",
+            "lightning:type" : "lightning__richTextType",
+            "lightning:isPII" : false,
+            "copilotAction:isDisplayable" : true,
+            "copilotAction:isUsedByPlanner" : true,
+            "copilotAction:useHydratedPrompt" : true
+          },
+          "citationSources" : {
+            "title" : "Citation Sources",
+            "description" : "Source links for the chunks in the hydrated prompt that's used by the planner service.",
+            "$ref" : "#/$defs/@apexClassType--AiCopilot__GenAiCitationInput",
+            "lightning:type" : "@apexClassType/AiCopilot__GenAiCitationInput",
+            "lightning:isPII" : false,
+            "copilotAction:isDisplayable" : false,
+            "copilotAction:isUsedByPlanner" : true,
+            "copilotAction:useHydratedPrompt" : false
+          }
+        },
+        "$ref" : "#/$defs/lightning__objectType",
+        "lightning:type" : "lightning__objectType",
+        "lightning:textIndexed" : true,
+        "$schema" : "sfdc://metaschema/lightning__copilotActionOutput",
+        "$defs" : {
+          "lightning__richTextType" : {
+            "title" : "Rich Text",
+            "description" : "Represents formatted text with styling options.",
+            "type" : "string",
+            "contentMediaType" : "text/richtext",
+            "lightning:textIndexed" : true,
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "@apexClassType--AiCopilot__GenAiCitationInput" : {
+            "unevaluatedProperties" : false,
+            "type" : "object",
+            "$ref" : "#/$defs/lightning__objectType",
+            "lightning:type" : "lightning__objectType",
+            "lightning:textIndexed" : true,
+            "$schema" : "sfdc://metaschema/lightning__apexClassType"
+          },
+          "lightning__objectType" : {
+            "title" : "Object",
+            "description" : "Represents a complex data structure with multiple fields.",
+            "type" : "object",
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          }
+        }
+      },
+      "id" : "172Kc00000007uW",
+      "name" : "AnswerQuestionsWithKnowledge_179Kc0000004HuX",
+      "localDevName" : "AnswerQuestionsWithKnowledge",
+      "source" : "EmployeeCopilot__AnswerQuestionsWithKnowledge",
+      "label" : "Answer Questions with Knowledge",
+      "description" : "Answers questions about company policies and procedures, troubleshooting steps, or product information. For example: “What is your return policy?” “How do I fix an issue?” or “What features does a product have?”",
+      "einstein:description" : null,
+      "ruleExpressions" : [ ]
+    } ],
+    "ruleExpressions" : [ ],
+    "tags" : null,
+    "canEscalate" : false
+  }, {
+    "id" : "179Kc0000004HuWIAU",
+    "name" : "Escalation_16jKc0000004Cqw",
+    "localDevName" : "Escalation",
+    "source" : "SvcCopilotTmpl__Escalation",
+    "tierQualifier" : "STANDARD",
+    "label" : "Escalation",
+    "description" : "Handles requests from users who want to transfer or escalate their conversation to a live human agent.",
+    "scope" : "Your job is to transfer the conversation to a live agent if a user explicitly asks for human assistance or has a complex issue that requires human intervention. If escalation fails, ask the user whether they would like to log a support case so the issue is recorded for follow-up.",
+    "workflowConfig" : null,
+    "pluginType" : "TOPIC",
+    "instructionDefinitions" : [ {
+      "name" : "escalateonrequest",
+      "label" : "escalate-on-request",
+      "description" : "If a user explicitly asks to transfer to a live agent, escalate the conversation."
+    }, {
+      "name" : "promptonescalationfailure",
+      "label" : "prompt-on-escalation-failure",
+      "description" : "If escalation to a live agent fails for any reason, acknowledge the issue and ask the user whether they would like to log a support case instead."
+    } ],
+    "utteranceDefinitions" : [ ],
+    "functions" : [ ],
+    "ruleExpressions" : [ ],
+    "tags" : null,
+    "canEscalate" : true
+  }, {
+    "id" : "179Kc000000PDoZIAW",
+    "name" : "CaseManagement",
+    "localDevName" : null,
+    "source" : "SvcCopilotTmpl__CaseManagement",
+    "tierQualifier" : "STANDARD",
+    "label" : "Case Management",
+    "description" : "Handles customer inquiries and actions related to support cases, including providing case information, updating existing cases, and creating new cases.",
+    "scope" : "Your job is to help customers retrieve case information, update case comments, and create new cases based on customer requests.",
+    "workflowConfig" : null,
+    "pluginType" : "TOPIC",
+    "instructionDefinitions" : [ {
+      "name" : "instruction_ifthecusto4",
+      "label" : "instruction_ifthecusto4",
+      "description" : "If the customer is not known, always ask for their email address and get their Contact record before running any other actions."
+    }, {
+      "name" : "instruction_whenacusto6",
+      "label" : "instruction_whenacusto6",
+      "description" : "When a customer asks you to create a case, please summarize the current conversation. The subject should be less than 7 words and function as a high level overview of what the customer inquired about. The description should be no more than 3 sentences and should provide more depth about what exactly the customer asked, important data, and any other relevant information to help a customer service representative understand the context of this conversation."
+    }, {
+      "name" : "instruction_whenadding7",
+      "label" : "instruction_whenadding7",
+      "description" : "When adding a comment to a case, first retrieve the case details using the case number, ask the user for the exact comment they would like to add and only then add it."
+    }, {
+      "name" : "instruction_usetheansw5",
+      "label" : "instruction_usetheansw5",
+      "description" : "Use the Answer Questions with Knowledge action to answer troubleshooting questions."
+    }, {
+      "name" : "instruction_whensharin8",
+      "label" : "instruction_whensharin8",
+      "description" : "When sharing case details to the customer, show the following properties as an itemized list :Case number, Subject, Description, and Status."
+    }, {
+      "name" : "instruction_acknowledg1",
+      "label" : "instruction_acknowledg1",
+      "description" : "Acknowledge and validate user concerns with empathy and professionalism."
+    }, {
+      "name" : "instruction_alwaysform2",
+      "label" : "instruction_alwaysform2",
+      "description" : "Always format any dates in a human readable format"
+    }, {
+      "name" : "instruction_acaseisare0",
+      "label" : "instruction_acaseisare0",
+      "description" : "A case is a record used to help track a customer's issues. Customers may have questions about the status of the issue or want to provide more information for the case. Cases are usually associated with a contact. Comments are added to provide new information."
+    }, {
+      "name" : "instruction_donotevers3",
+      "label" : "instruction_donotevers3",
+      "description" : "Do not ever show the Case Id to a customer"
+    } ],
+    "utteranceDefinitions" : [ ],
+    "functions" : [ {
+      "type" : "InvocableFunction",
+      "billingStatus" : "BILLABLE",
+      "isBillable" : true,
+      "tierQualifier" : "STANDARD",
+      "usageType" : null,
+      "requireUserConfirmation" : true,
+      "requireUserVerification" : false,
+      "includeInProgressIndicator" : true,
+      "progressIndicatorMessage" : null,
+      "invocationTargetType" : "flow",
+      "invocationTargetName" : "SvcCopilotTmpl__AddCaseComment",
+      "invocationTargetId" : "SvcCopilotTmpl__AddCaseComment",
+      "input" : null,
+      "inputType" : {
+        "required" : [ "caseRecord", "caseComment" ],
+        "unevaluatedProperties" : false,
+        "type" : "object",
+        "properties" : {
+          "caseRecord" : {
+            "title" : "Case record",
+            "description" : "Stores the case record to be updated with a comment.",
+            "$ref" : "#/$defs/lightning__recordInfoType",
+            "lightning:type" : "lightning__recordInfoType",
+            "lightning:sObjectInfo" : {
+              "apiName" : "Case"
+            },
+            "lightning:isPII" : false,
+            "copilotAction:isUserInput" : false
+          },
+          "caseComment" : {
+            "title" : "Case comment",
+            "description" : "Stores the text of the comment to add to the case.",
+            "type" : "string",
+            "$ref" : "#/$defs/lightning__textType",
+            "lightning:type" : "lightning__textType",
+            "lightning:isPII" : false,
+            "copilotAction:isUserInput" : true
+          }
+        },
+        "$ref" : "#/$defs/lightning__objectType",
+        "lightning:type" : "lightning__objectType",
+        "lightning:textIndexed" : true,
+        "$schema" : "sfdc://metaschema/lightning__copilotActionInput",
+        "$defs" : {
+          "lightning__recordInfoType" : {
+            "required" : [ "sObjectInfo" ],
+            "additionalProperties" : false,
+            "type" : "object",
+            "properties" : {
+              "sObjectInfo" : {
+                "$ref" : "#/$defs/lightning__sObjectInfoType",
+                "lightning:type" : "lightning__sObjectInfoType"
+              },
+              "id" : {
+                "$ref" : "#/$defs/lightning__recordIdType",
+                "lightning:type" : "lightning__recordIdType"
+              },
+              "data" : {
+                "additionalProperties" : true,
+                "type" : "object"
+              },
+              "title" : {
+                "type" : "string"
+              }
+            },
+            "sfdc_cms:interop" : {
+              "invocableAction" : [ "sobject" ]
+            },
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__sObjectInfoType" : {
+            "required" : [ "apiName" ],
+            "additionalProperties" : false,
+            "type" : "object",
+            "properties" : {
+              "apiName" : {
+                "type" : "string"
+              },
+              "label" : {
+                "type" : "string"
+              }
+            },
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__recordIdType" : {
+            "title" : "Salesforce ID Property",
+            "type" : "string",
+            "pattern" : "\\b[a-zA-Z0-9]{15}\\b|\\b[a-zA-Z0-9]{18}\\b",
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__textType" : {
+            "title" : "Text",
+            "description" : "Represents a text value.",
+            "type" : "string",
+            "maxLength" : 255,
+            "lightning:textIndexed" : true,
+            "lightning:supportsPersonalization" : true,
+            "sfdc_cms:interop" : {
+              "invocableAction" : [ "picklistSelections" ]
+            },
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__objectType" : {
+            "title" : "Object",
+            "description" : "Represents a complex data structure with multiple fields.",
+            "type" : "object",
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          }
+        }
+      },
+      "output" : null,
+      "outputType" : {
+        "unevaluatedProperties" : false,
+        "type" : "object",
+        "properties" : {
+          "outcomeMessage" : {
+            "title" : "Outcome message",
+            "description" : "Stores the message that lets the customer know whether the comment was successfully added to the case.",
+            "type" : "string",
+            "$ref" : "#/$defs/lightning__textType",
+            "lightning:type" : "lightning__textType",
+            "lightning:isPII" : false,
+            "copilotAction:isDisplayable" : true,
+            "copilotAction:isUsedByPlanner" : true
+          }
+        },
+        "$ref" : "#/$defs/lightning__objectType",
+        "lightning:type" : "lightning__objectType",
+        "lightning:textIndexed" : true,
+        "$schema" : "sfdc://metaschema/lightning__copilotActionOutput",
+        "$defs" : {
+          "lightning__textType" : {
+            "title" : "Text",
+            "description" : "Represents a text value.",
+            "type" : "string",
+            "maxLength" : 255,
+            "lightning:textIndexed" : true,
+            "lightning:supportsPersonalization" : true,
+            "sfdc_cms:interop" : {
+              "invocableAction" : [ "picklistSelections" ]
+            },
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__objectType" : {
+            "title" : "Object",
+            "description" : "Represents a complex data structure with multiple fields.",
+            "type" : "object",
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          }
+        }
+      },
+      "id" : "172Kc00000007uR",
+      "name" : "AddCaseComment_179Kc000000PDoZ",
+      "localDevName" : "AddCaseComment",
+      "source" : "SvcCopilotTmpl__AddCaseComment",
+      "label" : "Add Case Comment",
+      "description" : "Let a customer add a comment to an existing case.",
+      "einstein:description" : null,
+      "ruleExpressions" : [ ]
+    }, {
+      "type" : "InvocableFunction",
+      "billingStatus" : "BILLABLE",
+      "isBillable" : true,
+      "tierQualifier" : "STANDARD",
+      "usageType" : null,
+      "requireUserConfirmation" : false,
+      "requireUserVerification" : false,
+      "includeInProgressIndicator" : true,
+      "progressIndicatorMessage" : null,
+      "invocationTargetType" : "flow",
+      "invocationTargetName" : "SvcCopilotTmpl__GetCasesForContact",
+      "invocationTargetId" : "SvcCopilotTmpl__GetCasesForContact",
+      "input" : null,
+      "inputType" : {
+        "required" : [ "contactRecord" ],
+        "unevaluatedProperties" : false,
+        "type" : "object",
+        "properties" : {
+          "contactRecord" : {
+            "title" : "Contact record",
+            "description" : "The contact record for a customer used to look up related case records.",
+            "$ref" : "#/$defs/lightning__recordInfoType",
+            "lightning:type" : "lightning__recordInfoType",
+            "lightning:sObjectInfo" : {
+              "apiName" : "Contact"
+            },
+            "lightning:isPII" : false,
+            "copilotAction:isUserInput" : false
+          }
+        },
+        "$ref" : "#/$defs/lightning__objectType",
+        "lightning:type" : "lightning__objectType",
+        "lightning:textIndexed" : true,
+        "$schema" : "sfdc://metaschema/lightning__copilotActionInput",
+        "$defs" : {
+          "lightning__recordInfoType" : {
+            "required" : [ "sObjectInfo" ],
+            "additionalProperties" : false,
+            "type" : "object",
+            "properties" : {
+              "sObjectInfo" : {
+                "$ref" : "#/$defs/lightning__sObjectInfoType",
+                "lightning:type" : "lightning__sObjectInfoType"
+              },
+              "id" : {
+                "$ref" : "#/$defs/lightning__recordIdType",
+                "lightning:type" : "lightning__recordIdType"
+              },
+              "data" : {
+                "additionalProperties" : true,
+                "type" : "object"
+              },
+              "title" : {
+                "type" : "string"
+              }
+            },
+            "sfdc_cms:interop" : {
+              "invocableAction" : [ "sobject" ]
+            },
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__sObjectInfoType" : {
+            "required" : [ "apiName" ],
+            "additionalProperties" : false,
+            "type" : "object",
+            "properties" : {
+              "apiName" : {
+                "type" : "string"
+              },
+              "label" : {
+                "type" : "string"
+              }
+            },
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__recordIdType" : {
+            "title" : "Salesforce ID Property",
+            "type" : "string",
+            "pattern" : "\\b[a-zA-Z0-9]{15}\\b|\\b[a-zA-Z0-9]{18}\\b",
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__objectType" : {
+            "title" : "Object",
+            "description" : "Represents a complex data structure with multiple fields.",
+            "type" : "object",
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          }
+        }
+      },
+      "output" : null,
+      "outputType" : {
+        "unevaluatedProperties" : false,
+        "type" : "object",
+        "properties" : {
+          "caseList" : {
+            "title" : "Case List",
+            "description" : "Stores the ID, Subject, Description, Status, CreatedDate, CaseNumber, LastModifiedDate, and ClosedDate for case records related to a specified contact.",
+            "type" : "array",
+            "maxItems" : 2000,
+            "items" : {
+              "$ref" : "#/$defs/lightning__recordInfoType",
+              "lightning:type" : "lightning__recordInfoType",
+              "lightning:sObjectInfo" : {
+                "apiName" : "Case"
+              }
+            },
+            "$ref" : "#/$defs/lightning__listType",
+            "lightning:type" : "lightning__listType",
+            "lightning:isPII" : false,
+            "copilotAction:isDisplayable" : true,
+            "copilotAction:isUsedByPlanner" : true
+          }
+        },
+        "$ref" : "#/$defs/lightning__objectType",
+        "lightning:type" : "lightning__objectType",
+        "lightning:textIndexed" : true,
+        "$schema" : "sfdc://metaschema/lightning__copilotActionOutput",
+        "$defs" : {
+          "lightning__recordInfoType" : {
+            "required" : [ "sObjectInfo" ],
+            "additionalProperties" : false,
+            "type" : "object",
+            "properties" : {
+              "sObjectInfo" : {
+                "$ref" : "#/$defs/lightning__sObjectInfoType",
+                "lightning:type" : "lightning__sObjectInfoType"
+              },
+              "id" : {
+                "$ref" : "#/$defs/lightning__recordIdType",
+                "lightning:type" : "lightning__recordIdType"
+              },
+              "data" : {
+                "additionalProperties" : true,
+                "type" : "object"
+              },
+              "title" : {
+                "type" : "string"
+              }
+            },
+            "sfdc_cms:interop" : {
+              "invocableAction" : [ "sobject" ]
+            },
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__sObjectInfoType" : {
+            "required" : [ "apiName" ],
+            "additionalProperties" : false,
+            "type" : "object",
+            "properties" : {
+              "apiName" : {
+                "type" : "string"
+              },
+              "label" : {
+                "type" : "string"
+              }
+            },
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__recordIdType" : {
+            "title" : "Salesforce ID Property",
+            "type" : "string",
+            "pattern" : "\\b[a-zA-Z0-9]{15}\\b|\\b[a-zA-Z0-9]{18}\\b",
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__listType" : {
+            "description" : "Represents a list of items",
+            "type" : "array",
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__objectType" : {
+            "title" : "Object",
+            "description" : "Represents a complex data structure with multiple fields.",
+            "type" : "object",
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          }
+        }
+      },
+      "id" : "172Kc00000007uS",
+      "name" : "GetAllCasesForContact_179Kc000000PDoZ",
+      "localDevName" : "GetAllCasesForContact",
+      "source" : "SvcCopilotTmpl__GetAllCasesForContact",
+      "label" : "Get All Cases For Contact",
+      "description" : "Returns a list of cases related to a given Contact record.",
+      "einstein:description" : null,
+      "ruleExpressions" : [ ]
+    }, {
+      "type" : "InvocableFunction",
+      "billingStatus" : "BILLABLE",
+      "isBillable" : true,
+      "tierQualifier" : "CUSTOM",
+      "usageType" : null,
+      "requireUserConfirmation" : false,
+      "requireUserVerification" : false,
+      "includeInProgressIndicator" : true,
+      "progressIndicatorMessage" : "Looking for Contact information",
+      "invocationTargetType" : "flow",
+      "invocationTargetName" : "300Kc000000L870IAC",
+      "invocationTargetId" : "300Kc000000L870IAC",
+      "input" : null,
+      "inputType" : {
+        "required" : [ "emailAddress" ],
+        "unevaluatedProperties" : false,
+        "type" : "object",
+        "properties" : {
+          "emailAddress" : {
+            "title" : "emailAddress",
+            "description" : "Stores the email address provided by the customer.",
+            "type" : "string",
+            "$ref" : "#/$defs/lightning__textType",
+            "lightning:type" : "lightning__textType",
+            "lightning:isPII" : false,
+            "copilotAction:isUserInput" : true
+          }
+        },
+        "$ref" : "#/$defs/lightning__objectType",
+        "lightning:type" : "lightning__objectType",
+        "lightning:textIndexed" : true,
+        "$schema" : "sfdc://metaschema/lightning__copilotActionInput",
+        "$defs" : {
+          "lightning__textType" : {
+            "title" : "Text",
+            "description" : "Represents a text value.",
+            "type" : "string",
+            "maxLength" : 255,
+            "lightning:textIndexed" : true,
+            "lightning:supportsPersonalization" : true,
+            "sfdc_cms:interop" : {
+              "invocableAction" : [ "picklistSelections" ]
+            },
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__objectType" : {
+            "title" : "Object",
+            "description" : "Represents a complex data structure with multiple fields.",
+            "type" : "object",
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          }
+        }
+      },
+      "output" : null,
+      "outputType" : {
+        "unevaluatedProperties" : false,
+        "type" : "object",
+        "properties" : {
+          "contactRecord" : {
+            "title" : "contactRecord",
+            "description" : "The contact record associated with the identified customer.",
+            "$ref" : "#/$defs/lightning__recordInfoType",
+            "lightning:type" : "lightning__recordInfoType",
+            "lightning:sObjectInfo" : {
+              "apiName" : "Contact"
+            },
+            "lightning:isPII" : false,
+            "copilotAction:isDisplayable" : true,
+            "copilotAction:isUsedByPlanner" : true,
+            "copilotAction:useHydratedPrompt" : false
+          }
+        },
+        "$ref" : "#/$defs/lightning__objectType",
+        "lightning:type" : "lightning__objectType",
+        "lightning:textIndexed" : true,
+        "$schema" : "sfdc://metaschema/lightning__copilotActionOutput",
+        "$defs" : {
+          "lightning__recordInfoType" : {
+            "required" : [ "sObjectInfo" ],
+            "additionalProperties" : false,
+            "type" : "object",
+            "properties" : {
+              "sObjectInfo" : {
+                "$ref" : "#/$defs/lightning__sObjectInfoType",
+                "lightning:type" : "lightning__sObjectInfoType"
+              },
+              "id" : {
+                "$ref" : "#/$defs/lightning__recordIdType",
+                "lightning:type" : "lightning__recordIdType"
+              },
+              "data" : {
+                "additionalProperties" : true,
+                "type" : "object"
+              },
+              "title" : {
+                "type" : "string"
+              }
+            },
+            "sfdc_cms:interop" : {
+              "invocableAction" : [ "sobject" ]
+            },
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__sObjectInfoType" : {
+            "required" : [ "apiName" ],
+            "additionalProperties" : false,
+            "type" : "object",
+            "properties" : {
+              "apiName" : {
+                "type" : "string"
+              },
+              "label" : {
+                "type" : "string"
+              }
+            },
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__recordIdType" : {
+            "title" : "Salesforce ID Property",
+            "type" : "string",
+            "pattern" : "\\b[a-zA-Z0-9]{15}\\b|\\b[a-zA-Z0-9]{18}\\b",
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__objectType" : {
+            "title" : "Object",
+            "description" : "Represents a complex data structure with multiple fields.",
+            "type" : "object",
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          }
+        }
+      },
+      "id" : "172Kc00000007uU",
+      "name" : "Identify_Customer_by_Email_CM_179Kc000000PDoZ",
+      "localDevName" : "Identify_Customer_by_Email_CM",
+      "source" : "172Kc000000PELdIAO",
+      "label" : "Identify Customer by Email - CM",
+      "description" : "Identify a customer by their email address and return their contact record.",
+      "einstein:description" : null,
+      "ruleExpressions" : [ ]
+    }, {
+      "type" : "InvocableFunction",
+      "billingStatus" : "BILLABLE",
+      "isBillable" : true,
+      "tierQualifier" : "STANDARD",
+      "usageType" : null,
+      "requireUserConfirmation" : false,
+      "requireUserVerification" : false,
+      "includeInProgressIndicator" : true,
+      "progressIndicatorMessage" : null,
+      "invocationTargetType" : "flow",
+      "invocationTargetName" : "SvcCopilotTmpl__GetCaseByCaseNumber",
+      "invocationTargetId" : "SvcCopilotTmpl__GetCaseByCaseNumber",
+      "input" : null,
+      "inputType" : {
+        "required" : [ "contactRecord", "caseNumber" ],
+        "unevaluatedProperties" : false,
+        "type" : "object",
+        "properties" : {
+          "contactRecord" : {
+            "title" : "Contact record",
+            "description" : "Stores the contact record of the customer to be used with the case number to look up a case.",
+            "$ref" : "#/$defs/lightning__recordInfoType",
+            "lightning:type" : "lightning__recordInfoType",
+            "lightning:isPII" : false,
+            "copilotAction:isUserInput" : false
+          },
+          "caseNumber" : {
+            "title" : "Case Number",
+            "description" : "Stores the case number provided by the customer.",
+            "type" : "string",
+            "$ref" : "#/$defs/lightning__textType",
+            "lightning:type" : "lightning__textType",
+            "lightning:isPII" : false,
+            "copilotAction:isUserInput" : false
+          }
+        },
+        "$ref" : "#/$defs/lightning__objectType",
+        "lightning:type" : "lightning__objectType",
+        "lightning:textIndexed" : true,
+        "$schema" : "sfdc://metaschema/lightning__copilotActionInput",
+        "$defs" : {
+          "lightning__recordInfoType" : {
+            "required" : [ "sObjectInfo" ],
+            "additionalProperties" : false,
+            "type" : "object",
+            "properties" : {
+              "sObjectInfo" : {
+                "$ref" : "#/$defs/lightning__sObjectInfoType",
+                "lightning:type" : "lightning__sObjectInfoType"
+              },
+              "id" : {
+                "$ref" : "#/$defs/lightning__recordIdType",
+                "lightning:type" : "lightning__recordIdType"
+              },
+              "data" : {
+                "additionalProperties" : true,
+                "type" : "object"
+              },
+              "title" : {
+                "type" : "string"
+              }
+            },
+            "sfdc_cms:interop" : {
+              "invocableAction" : [ "sobject" ]
+            },
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__sObjectInfoType" : {
+            "required" : [ "apiName" ],
+            "additionalProperties" : false,
+            "type" : "object",
+            "properties" : {
+              "apiName" : {
+                "type" : "string"
+              },
+              "label" : {
+                "type" : "string"
+              }
+            },
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__recordIdType" : {
+            "title" : "Salesforce ID Property",
+            "type" : "string",
+            "pattern" : "\\b[a-zA-Z0-9]{15}\\b|\\b[a-zA-Z0-9]{18}\\b",
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__textType" : {
+            "title" : "Text",
+            "description" : "Represents a text value.",
+            "type" : "string",
+            "maxLength" : 255,
+            "lightning:textIndexed" : true,
+            "lightning:supportsPersonalization" : true,
+            "sfdc_cms:interop" : {
+              "invocableAction" : [ "picklistSelections" ]
+            },
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__objectType" : {
+            "title" : "Object",
+            "description" : "Represents a complex data structure with multiple fields.",
+            "type" : "object",
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          }
+        }
+      },
+      "output" : null,
+      "outputType" : {
+        "unevaluatedProperties" : false,
+        "type" : "object",
+        "properties" : {
+          "caseRecord" : {
+            "title" : "Case record",
+            "description" : "Stores the case record based on the contact record and case number.",
+            "$ref" : "#/$defs/lightning__recordInfoType",
+            "lightning:type" : "lightning__recordInfoType",
+            "lightning:isPII" : false,
+            "copilotAction:isDisplayable" : true,
+            "copilotAction:isUsedByPlanner" : true
+          }
+        },
+        "$ref" : "#/$defs/lightning__objectType",
+        "lightning:type" : "lightning__objectType",
+        "lightning:textIndexed" : true,
+        "$schema" : "sfdc://metaschema/lightning__copilotActionOutput",
+        "$defs" : {
+          "lightning__recordInfoType" : {
+            "required" : [ "sObjectInfo" ],
+            "additionalProperties" : false,
+            "type" : "object",
+            "properties" : {
+              "sObjectInfo" : {
+                "$ref" : "#/$defs/lightning__sObjectInfoType",
+                "lightning:type" : "lightning__sObjectInfoType"
+              },
+              "id" : {
+                "$ref" : "#/$defs/lightning__recordIdType",
+                "lightning:type" : "lightning__recordIdType"
+              },
+              "data" : {
+                "additionalProperties" : true,
+                "type" : "object"
+              },
+              "title" : {
+                "type" : "string"
+              }
+            },
+            "sfdc_cms:interop" : {
+              "invocableAction" : [ "sobject" ]
+            },
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__sObjectInfoType" : {
+            "required" : [ "apiName" ],
+            "additionalProperties" : false,
+            "type" : "object",
+            "properties" : {
+              "apiName" : {
+                "type" : "string"
+              },
+              "label" : {
+                "type" : "string"
+              }
+            },
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__recordIdType" : {
+            "title" : "Salesforce ID Property",
+            "type" : "string",
+            "pattern" : "\\b[a-zA-Z0-9]{15}\\b|\\b[a-zA-Z0-9]{18}\\b",
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__objectType" : {
+            "title" : "Object",
+            "description" : "Represents a complex data structure with multiple fields.",
+            "type" : "object",
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          }
+        }
+      },
+      "id" : "172Kc00000007uT",
+      "name" : "GetCaseByCaseNumber_179Kc000000PDoZ",
+      "localDevName" : "GetCaseByCaseNumber",
+      "source" : "SvcCopilotTmpl__GetCaseByCaseNumber",
+      "label" : "Get Case By Case Number",
+      "description" : "Returns a case associated with a given contact record and case number.",
+      "einstein:description" : null,
+      "ruleExpressions" : [ ]
+    } ],
+    "ruleExpressions" : [ ],
+    "tags" : null,
+    "canEscalate" : false
+  }, {
+    "id" : "179Kc000000PE7IIAW",
+    "name" : "GeneralFAQ",
+    "localDevName" : null,
+    "source" : "SvcCopilotTmpl__GeneralFAQ",
+    "tierQualifier" : "STANDARD",
+    "label" : "General FAQ",
+    "description" : "This topic is for helping answer customer's questions by searching through the knowledge articles and providing information from those articles. The questions can be about the company and its products, policies or business procedures",
+    "scope" : "Your job is solely to help with issues and answer questions about the company, its products, procedures, or policies by searching knowledge articles.",
+    "workflowConfig" : null,
+    "pluginType" : "TOPIC",
+    "instructionDefinitions" : [ {
+      "name" : "instruction_ifthecusto1",
+      "label" : "instruction_ifthecusto1",
+      "description" : "If the customer's question is too vague or general, use the \"General Web Search\" topic to find answers."
+    }, {
+      "name" : "instruction_neverprovi4",
+      "label" : "instruction_neverprovi4",
+      "description" : "Never provide generic information, advice or troubleshooting steps, unless retrieved from searching knowledge articles."
+    }, {
+      "name" : "instruction_ifyouareun2",
+      "label" : "instruction_ifyouareun2",
+      "description" : "If you are unable to answer customer's questions, ask if they want to use the \"General Web Search\" topic to find answers."
+    }, {
+      "name" : "instruction_includesou3",
+      "label" : "instruction_includesou3",
+      "description" : "Include sources in your response when available from the knowledge articles, otherwise proceed without them."
+    }, {
+      "name" : "instruction_alwaysusek0",
+      "label" : "instruction_alwaysusek0",
+      "description" : "Always use \"KA_Knowledge_Library_1Cx_shr337a9edf\" for the \"Retriever API Name\" input in the \"Answer FAQ Questions\" action"
+    } ],
+    "utteranceDefinitions" : [ ],
+    "functions" : [ {
+      "type" : "InvocableFunction",
+      "billingStatus" : "BILLABLE",
+      "isBillable" : true,
+      "tierQualifier" : "CUSTOM",
+      "usageType" : null,
+      "requireUserConfirmation" : false,
+      "requireUserVerification" : false,
+      "includeInProgressIndicator" : true,
+      "progressIndicatorMessage" : "Searching for Answer",
+      "invocationTargetType" : "generatePromptResponse",
+      "invocationTargetName" : "0hfKc000000050IIAQ",
+      "invocationTargetId" : "0hfKc000000050IIAQ",
+      "input" : null,
+      "inputType" : {
+        "required" : [ "Input:Query", "Input:RetrieverIdOrName" ],
+        "unevaluatedProperties" : false,
+        "type" : "object",
+        "properties" : {
+          "Input:Query" : {
+            "title" : "Query",
+            "description" : "Required. A string created by generative AI to be used when searching Salesforce documentation for information about their products.",
+            "type" : "string",
+            "$ref" : "#/$defs/lightning__textType",
+            "lightning:type" : "lightning__textType",
+            "lightning:isPII" : false,
+            "copilotAction:isUserInput" : false
+          },
+          "Input:RetrieverIdOrName" : {
+            "title" : "RetrieverIdOrName",
+            "description" : "Retriever API Name",
+            "type" : "string",
+            "$ref" : "#/$defs/lightning__textType",
+            "lightning:type" : "lightning__textType",
+            "lightning:isPII" : false,
+            "copilotAction:isUserInput" : false
+          },
+          "citationMode" : {
+            "title" : "Citation Mode",
+            "description" : "Select Citation Mode",
+            "type" : "string",
+            "$ref" : "#/$defs/lightning__textType",
+            "lightning:type" : "lightning__textType",
+            "lightning:isPII" : false,
+            "copilotAction:isUserInput" : false
+          }
+        },
+        "$ref" : "#/$defs/lightning__objectType",
+        "lightning:type" : "lightning__objectType",
+        "lightning:textIndexed" : true,
+        "$schema" : "sfdc://metaschema/lightning__copilotActionInput",
+        "$defs" : {
+          "lightning__textType" : {
+            "title" : "Text",
+            "description" : "Represents a text value.",
+            "type" : "string",
+            "maxLength" : 255,
+            "lightning:textIndexed" : true,
+            "lightning:supportsPersonalization" : true,
+            "sfdc_cms:interop" : {
+              "invocableAction" : [ "picklistSelections" ]
+            },
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "lightning__objectType" : {
+            "title" : "Object",
+            "description" : "Represents a complex data structure with multiple fields.",
+            "type" : "object",
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          }
+        }
+      },
+      "output" : null,
+      "outputType" : {
+        "unevaluatedProperties" : false,
+        "type" : "object",
+        "properties" : {
+          "promptResponse" : {
+            "title" : "Prompt Response",
+            "description" : "The prompt response generated by the action based on the specified prompt and input.",
+            "type" : "string",
+            "$ref" : "#/$defs/lightning__textType",
+            "lightning:type" : "lightning__textType",
+            "lightning:isPII" : false,
+            "copilotAction:isDisplayable" : true,
+            "copilotAction:isUsedByPlanner" : true,
+            "copilotAction:useHydratedPrompt" : false
+          },
+          "citations" : {
+            "title" : "Citations",
+            "description" : "The prompt citation response generated by the action based on the specified prompt and input.",
+            "$ref" : "#/$defs/@apexClassType--AiCopilot__GenAiCitationOutput",
+            "lightning:type" : "@apexClassType/AiCopilot__GenAiCitationOutput",
+            "lightning:isPII" : false,
+            "copilotAction:isDisplayable" : true,
+            "copilotAction:isUsedByPlanner" : true,
+            "copilotAction:useHydratedPrompt" : false
+          }
+        },
+        "$ref" : "#/$defs/lightning__objectType",
+        "lightning:type" : "lightning__objectType",
+        "lightning:textIndexed" : true,
+        "$schema" : "sfdc://metaschema/lightning__copilotActionOutput",
+        "$defs" : {
+          "lightning__textType" : {
+            "title" : "Text",
+            "description" : "Represents a text value.",
+            "type" : "string",
+            "maxLength" : 255,
+            "lightning:textIndexed" : true,
+            "lightning:supportsPersonalization" : true,
+            "sfdc_cms:interop" : {
+              "invocableAction" : [ "picklistSelections" ]
+            },
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          },
+          "@apexClassType--AiCopilot__GenAiCitationOutput" : {
+            "unevaluatedProperties" : false,
+            "type" : "object",
+            "$ref" : "#/$defs/lightning__objectType",
+            "lightning:type" : "lightning__objectType",
+            "lightning:textIndexed" : true,
+            "$schema" : "sfdc://metaschema/lightning__apexClassType"
+          },
+          "lightning__objectType" : {
+            "title" : "Object",
+            "description" : "Represents a complex data structure with multiple fields.",
+            "type" : "object",
+            "lightning:isPublic" : true,
+            "$schema" : "sfdc://metaschema/sfdc_cms__propertyType"
+          }
+        }
+      },
+      "id" : "172Kc00000007uV",
+      "name" : "Answer_FAQ_Question_CM_179Kc000000PE7I",
+      "localDevName" : "Answer_FAQ_Question_CM",
+      "source" : "172Kc000000PFgGIAW",
+      "label" : "Answer FAQ Question - CM",
+      "description" : "Answers questions about how to use Salesforce products with salesforce documentation. For example: “How do I create a permission set?”. This action is automatically invoked if no other actions are available for the utterance.",
+      "einstein:description" : null,
+      "ruleExpressions" : [ ]
+    } ],
+    "ruleExpressions" : [ ],
+    "tags" : null,
+    "canEscalate" : false
+  } ],
+  "tags" : null,
+  "variableMapping" : [ ],
+  "agentVariableMappings" : null,
+  "coreInstance" : "NA246",
+  "gateConfig" : {
+    "streaming.deny" : false,
+    "com.salesforce.generative.ai.core.agentLifecycleEvents" : false
+  },
+  "languageDetection" : null,
+  "userContext" : "UT:STANDARD",
+  "relatedAgents" : null,
+  "c2cUserId" : "005Kc000001ZL3V",
+  "trustedUrls" : [ "https://*.amazonaws.com", "https://*.salesforceliveagent.com", "https://*.forceusercontent.com", "https://*.qlabs.sfdc.sh", "https://*.vidyard.com", "https://www.google-analytics.com", "https://www.googletagmanager.com", "https://www.google-analytics.com", "https://www.googletagmanager.com", "https://maps.a.forceusercontent.com", "https://{subdomain}-api.techsee.me", "https://qnextgen.s3.us-west-1.amazonaws.com", "https://techsee.me", "https://{subdomain}.techsee.me", "https://self.techsee.me", "https://self1.techsee.me", "https://{subdomain}.{dns-zone}.techsee.me", "https://{subdomain}.{dns-zone}.desktop.show", "https://prod-eu.techsee.me", "https://prod-us.techsee.me", "https://maps.a.forceusercontent.com", "https://rec.techsee.me", "https://rec1.techsee.me", "https://*.my.salesforce-scrt.com", "https://*.salesforceliveagent.com", "https://sfdc-ckz-b2b.s3.amazonaws.com", "https://stats.g.doubleclick.net", "https://www.google-analytics.com", "https://www.googletagmanager.com", "https://api.cquotient.com", "http://i.imgur.com", "http://imgur.com", "https://cdn-icons-png.flaticon.com", "https://c1.sfdcstatic.com", "https://*.force.com", "https://coldbrew-waterfall-1403.scratch.live-preview.salesforce-experience.com", "https://s3.amazonaws.com", "https://sdodemo-main-166ce2cf6b6-172-17af813c46b.force.com", "https://{imagebaseurl}.techsee.me", "https://images.unsplash.com", "https://*.gstatic.com", "https://media-subdomain.cdn.techsee.me", "https://*.imgur.com", "https://www.renewableenergyhub.co.uk", "https://*.online.tableau.com", "*.fontawesome.com", "https://avatars.slack-edge.com", "https://sdk-us.techsee.me", "*.saleo.io", "*.staging-saleo.io", "https://*.windsurfercrs.com", "https://pdf-to-text-service-b7a8e3198d7f.herokuapp.com", "https://storm-13712165923e23.my.site.com", "https://uatcdn3.shrglobal.com" ]
+}

@@ -1,0 +1,52 @@
+system:
+    instructions: "You answer warranty FAQs for Acme customers."
+    messages:
+        welcome: "Hi, I can answer your warranty questions."
+        error: "Sorry, something went wrong. Please try again."
+
+config:
+  default_agent_user: "faq_agent@acme.ext"
+  agent_label: "FAQ Agent"
+  developer_name: "FAQ_Agent"
+  agent_type: "AgentforceServiceAgent"
+  description: "Answers FAQs about Acme product warranty."
+
+language:
+    default_locale: "en_US"
+    additional_locales: ""
+    all_additional_locales: False
+
+connection messaging:
+    adaptive_response_allowed: True
+
+start_agent topic_selector:
+    label: "Topic Selector"
+    description: "Routes the user's request to the correct topic."
+    reasoning:
+        instructions: ->
+            | If the user asks anything about warranty, transition to @topic.warranty_faq.
+
+topic warranty_faq:
+    label: "Warranty FAQ"
+    description: "Answers common warranty questions."
+    reasoning:
+        instructions: ->
+            | Use only the knowledge base; do not invent terms.
+        actions:
+            search_warranty_kb: @actions.search_warranty_kb
+                with query = ...
+    actions:
+        search_warranty_kb:
+            description: "Searches the warranty knowledge base."
+            require_user_confirmation: False
+            include_in_progress_indicator: True
+            target: "retriever://Warranty_KB"
+            inputs:
+                "query": string
+                    description: "Search query."
+                    is_required: True
+                    is_user_input: True
+            outputs:
+                "results": string
+                    description: "KB excerpts."
+                    is_displayable: True

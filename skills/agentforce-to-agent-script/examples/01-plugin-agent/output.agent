@@ -1,0 +1,92 @@
+system:
+    instructions: "You are a customer service agent helping Acme customers with order and return questions. Acme Corp manufactures solar panels."
+    messages:
+        welcome: "Hi, I'm the Acme Assistant. How can I help you today?"
+        error: "Sorry, something went wrong. Please try again."
+
+config:
+  default_agent_user: "agentforce_service_agent@acme.ext"
+  agent_label: "Acme Service Agent"
+  developer_name: "Acme_Service_Agent"
+  agent_type: "AgentforceServiceAgent"
+  description: "Handles customer service requests for Acme Corp. — order status, returns, and FAQ."
+
+variables:
+    ContactId: linked string
+        source: @MessagingEndUser.ContactId
+        description: "Salesforce Contact ID of the messaging user."
+
+language:
+    default_locale: "en_US"
+    additional_locales: "es,es_MX"
+    all_additional_locales: False
+
+connection messaging:
+    adaptive_response_allowed: True
+
+start_agent topic_selector:
+    label: "Topic Selector"
+    description: "Routes the user's request to the correct topic."
+    reasoning:
+        instructions: ->
+            | Read the user's most recent message.
+            | If it relates to an order status, transition to @topic.order_status.
+            | If it relates to a return, transition to @topic.returns.
+
+topic order_status:
+    label: "Order Status"
+    description: "Handles order status enquiries."
+    reasoning:
+        instructions: ->
+            | Only answer order status questions; do not modify orders.
+            | Always call get_order_status before answering.
+            | If {!@variables.ContactId} is empty, ask the user for their email.
+        actions:
+            get_order_status: @actions.get_order_status
+                with orderId = ...
+    actions:
+        get_order_status:
+            description: "Retrieves order status from the backend system."
+            require_user_confirmation: False
+            include_in_progress_indicator: True
+            target: "flow://Get_Order_Status"
+            inputs:
+                "orderId": string
+                    description: "The order ID to look up."
+                    is_required: True
+                    is_user_input: True
+            outputs:
+                "status": string
+                    description: "Current status of the order."
+                    is_displayable: True
+
+topic returns:
+    label: "Returns"
+    description: "Handles product return requests."
+    reasoning:
+        instructions: ->
+            | Only handle returns within the 30-day window.
+            | Confirm the order is within the return window before initiating a return.
+        actions:
+            initiate_return: @actions.initiate_return
+                with orderId = ...
+                with reason = ...
+    actions:
+        initiate_return:
+            description: "Creates a return case for the given order."
+            require_user_confirmation: False
+            include_in_progress_indicator: True
+            target: "apex://Initiate_Return_Case"
+            inputs:
+                "orderId": string
+                    description: "Order to return."
+                    is_required: True
+                    is_user_input: True
+                "reason": string
+                    description: "Reason for the return."
+                    is_required: True
+                    is_user_input: True
+            outputs:
+                "caseId": string
+                    description: "Created case ID."
+                    is_displayable: True
