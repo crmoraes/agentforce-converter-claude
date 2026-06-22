@@ -1,0 +1,70 @@
+system:
+    instructions: "You are a customer service agent helping SolarCo customers with order and product questions. [TODO_REPLACE: insert plannerRole and plannerCompany content before deploying]"
+    messages:
+        welcome: "Hi, I'm Solar Support Agent. How can I help you today?"
+        error: "Sorry, something went wrong. Please try again."
+
+config:
+  default_agent_user: "Solar_Support_Agent@solarco.ext"
+  agent_label: "Solar Support Agent"
+  developer_name: "Solar_Support_Agent"
+  agent_type: "AgentforceServiceAgent"
+  description: "Handles customer service requests for SolarCo — order status, returns, and general FAQ."
+
+language:
+    default_locale: "en_US"
+    all_additional_locales: False
+
+connection messaging:
+    adaptive_response_allowed: True
+
+start_agent topic_selector:
+    label: "Topic Selector"
+    description: "Routes the user's request to the correct topic."
+    reasoning:
+        instructions: ->
+            | Read the user's most recent message.
+            | If it relates to an order status or delivery, transition to @topic.order_status.
+            | If the user asks to speak to a human or needs escalation, transition to @topic.escalation.
+
+topic escalation:
+    label: "Escalation"
+    description: "Handles requests from users who want to transfer to a live human agent."
+    reasoning:
+        instructions: ->
+            | Transfer to a live agent if the user explicitly asks for human assistance or has a complex issue.
+            | Escalate immediately if the user explicitly asks to speak to a human.
+            | If escalation fails, offer to log a support case.
+            @utils.escalate
+
+topic order_status:
+    label: "Order Status"
+    description: "Handles order status enquiries for solar panel products."
+    reasoning:
+        instructions: ->
+            | Only answer order-status questions. Do not modify orders.
+            | Always call get_order_status before answering.
+            | If the contact cannot be identified, ask the user for their order number.
+        actions:
+            get_order_status: @actions.get_order_status
+                with orderId = ...
+    actions:
+        get_order_status:
+            description: "Retrieves the current status of a customer order."
+            require_user_confirmation: False
+            include_in_progress_indicator: True
+            target: "flow://Get_Order_Status"
+            inputs:
+                "orderId": string
+                    description: "The order ID to look up."
+                    is_required: True
+                    is_user_input: True
+            outputs:
+                "orderStatus": string
+                    description: "Current status of the order."
+                    is_displayable: True
+                    is_used_by_planner: True
+                "estimatedDelivery": string
+                    description: "Estimated delivery date."
+                    is_displayable: True
+                    is_used_by_planner: True

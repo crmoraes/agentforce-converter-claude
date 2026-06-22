@@ -1,0 +1,113 @@
+{
+  "name": "Acme_Service_Agent",
+  "label": "Acme Service Agent",
+  "description": "Handles customer service requests for Acme Corp. — order status, returns, and FAQ.",
+  "plannerRole": "You are a customer service agent helping Acme customers with order and return questions.",
+  "plannerCompany": "Acme Corp manufactures solar panels.",
+  "plannerToneType": "CASUAL",
+  "locale": "en_US",
+  "secondaryLocales": ["es", "es_MX"],
+  "welcomeMessage": "Hi, I'm the Acme Assistant. How can I help you today?",
+  "variables": [
+    {
+      "name": "ContactId",
+      "dataType": "string",
+      "visibility": "INTERNAL",
+      "developerName": "ContactId",
+      "valueType": "REFERENCE",
+      "valueData": { "source": "@MessagingEndUser.ContactId" },
+      "description": "Salesforce Contact ID of the messaging user."
+    },
+    {
+      "name": "IsVerified",
+      "dataType": "boolean",
+      "visibility": "INTERNAL",
+      "developerName": "IsVerified",
+      "valueType": "PRIMITIVE",
+      "valueData": { "value": "false" },
+      "description": "Whether the customer has been verified."
+    }
+  ],
+  "plugins": [
+    {
+      "name": "Order_Status",
+      "label": "Order Status",
+      "description": "Handles order status enquiries.",
+      "scope": "Only answer order status questions; do not modify orders.",
+      "pluginType": "TOPIC",
+      "instructionDefinitions": [
+        { "description": "Always call get_order_status before answering." },
+        { "description": "If {!$ContactId} is empty, ask the user for their email." }
+      ],
+      "functions": [
+        {
+          "name": "get_order_status",
+          "label": "Get Order Status",
+          "description": "Retrieves order status from the backend system.",
+          "invocationTarget": "Get_Order_Status",
+          "invocationTargetType": "flow",
+          "inputs": [
+            {
+              "name": "orderId",
+              "dataType": "string",
+              "description": "The order ID to look up.",
+              "isRequired": true,
+              "isUserInput": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "status",
+              "dataType": "string",
+              "description": "Current status of the order.",
+              "isDisplayable": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Returns",
+      "label": "Returns",
+      "description": "Handles product return requests.",
+      "scope": "Only handle returns within the 30-day window.",
+      "pluginType": "TOPIC",
+      "instructionDefinitions": [
+        { "description": "Confirm the order is within the return window before initiating a return." }
+      ],
+      "functions": [
+        {
+          "name": "initiate_return",
+          "label": "Initiate Return",
+          "description": "Creates a return case for the given order.",
+          "invocationTarget": "Initiate_Return_Case",
+          "invocationTargetType": "apex",
+          "inputs": [
+            {
+              "name": "orderId",
+              "dataType": "string",
+              "description": "Order to return.",
+              "isRequired": true,
+              "isUserInput": true
+            },
+            {
+              "name": "reason",
+              "dataType": "string",
+              "description": "Reason for the return.",
+              "isRequired": true,
+              "isUserInput": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "caseId",
+              "dataType": "string",
+              "description": "Created case ID.",
+              "isDisplayable": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

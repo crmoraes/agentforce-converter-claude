@@ -1,0 +1,61 @@
+system:
+    instructions: "You help authenticated customers look up their account details."
+    messages:
+        welcome: "Hi, I can help look up your account details."
+        error: "Sorry, something went wrong. Please try again."
+
+config:
+  default_agent_user: "account_lookup_agent@acme.ext"
+  agent_label: "Account Lookup Agent"
+  developer_name: "Account_Lookup_Agent"
+  agent_type: "AgentforceServiceAgent"
+  description: "Looks up account info for verified callers."
+
+variables:
+    AccountId: linked string
+        source: @MessagingEndUser.AccountId
+        description: "Linked Account ID."
+    AttemptCount: mutable number = 0
+        description: "How many lookup attempts the user has made."
+
+language:
+    default_locale: "en_US"
+    additional_locales: ""
+    all_additional_locales: False
+
+connection messaging:
+    adaptive_response_allowed: True
+
+start_agent topic_selector:
+    label: "Topic Selector"
+    description: "Routes the user's request to the correct topic."
+    reasoning:
+        instructions: ->
+            | If the user asks for account details, transition to @topic.account_details.
+
+topic account_details:
+    label: "Account Details"
+    description: "Retrieves account details for the caller."
+    reasoning:
+        instructions: ->
+            | Only show details for the caller's own account.
+            | Use {!@variables.AccountId} as the account to look up.
+            | If lookup fails, increment {!@variables.AttemptCount} and tell the user.
+        actions:
+            get_account_details: @actions.get_account_details
+                with accountId = @variables.AccountId
+    actions:
+        get_account_details:
+            description: "Fetches account details by ID."
+            require_user_confirmation: False
+            include_in_progress_indicator: True
+            target: "flow://Get_Account_Details"
+            inputs:
+                "accountId": string
+                    description: "Account to look up."
+                    is_required: True
+                    is_user_input: False
+            outputs:
+                "details": string
+                    description: "Account details as text."
+                    is_displayable: True

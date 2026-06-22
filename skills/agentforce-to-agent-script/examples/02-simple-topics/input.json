@@ -1,0 +1,40 @@
+{
+  "name": "FAQ_Agent",
+  "label": "FAQ Agent",
+  "description": "Answers FAQs about Acme product warranty.",
+  "plannerRole": "You answer warranty FAQs for Acme customers.",
+  "locale": "en_US",
+  "topics": [
+    {
+      "name": "warranty_faq",
+      "label": "Warranty FAQ",
+      "description": "Answers common warranty questions.",
+      "instructions": "Use only the knowledge base; do not invent terms.",
+      "actions": [
+        {
+          "name": "search_warranty_kb",
+          "description": "Searches the warranty knowledge base.",
+          "invocationTarget": "Warranty_KB",
+          "invocationTargetType": "retriever",
+          "inputs": [
+            {
+              "name": "query",
+              "dataType": "string",
+              "description": "Search query.",
+              "isRequired": true,
+              "isUserInput": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "results",
+              "dataType": "string",
+              "description": "KB excerpts.",
+              "isDisplayable": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

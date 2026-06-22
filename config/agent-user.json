@@ -1,0 +1,9 @@
+{
+  "username": "agent@<your-org-alias>.example.com",
+  "profileName": "Einstein Agent",
+  "email": "agent@<your-org-alias>.example.com",
+  "firstName": "Einstein",
+  "lastName": "Agent",
+  "generatePassword": false,
+  "licenseType": "EinsteinGPTUser"
+}

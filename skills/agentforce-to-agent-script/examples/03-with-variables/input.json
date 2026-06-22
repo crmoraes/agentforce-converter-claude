@@ -1,0 +1,75 @@
+{
+  "name": "Account_Lookup_Agent",
+  "label": "Account Lookup Agent",
+  "description": "Looks up account info for verified callers.",
+  "plannerRole": "You help authenticated customers look up their account details.",
+  "locale": "en_US",
+  "variables": [
+    {
+      "name": "ContactId",
+      "dataType": "string",
+      "valueType": "REFERENCE",
+      "valueData": { "source": "@MessagingEndUser.ContactId" },
+      "description": "Linked Contact ID."
+    },
+    {
+      "name": "AccountId",
+      "dataType": "string",
+      "valueType": "REFERENCE",
+      "valueData": { "source": "@MessagingEndUser.AccountId" },
+      "description": "Linked Account ID."
+    },
+    {
+      "name": "AttemptCount",
+      "dataType": "number",
+      "valueType": "PRIMITIVE",
+      "valueData": { "value": "0" },
+      "description": "How many lookup attempts the user has made."
+    },
+    {
+      "name": "UnusedFlag",
+      "dataType": "boolean",
+      "valueType": "PRIMITIVE",
+      "valueData": { "value": "false" },
+      "description": "Defined but never referenced — should be dropped."
+    }
+  ],
+  "plugins": [
+    {
+      "name": "Account_Details",
+      "label": "Account Details",
+      "description": "Retrieves account details for the caller.",
+      "scope": "Only show details for the caller's own account.",
+      "pluginType": "TOPIC",
+      "instructionDefinitions": [
+        { "description": "Use {!$AccountId} as the account to look up." },
+        { "description": "If lookup fails, increment {$!AttemptCount} and tell the user." }
+      ],
+      "functions": [
+        {
+          "name": "get_account_details",
+          "description": "Fetches account details by ID.",
+          "invocationTarget": "Get_Account_Details",
+          "invocationTargetType": "flow",
+          "inputs": [
+            {
+              "name": "accountId",
+              "dataType": "string",
+              "description": "Account to look up.",
+              "isRequired": true,
+              "isUserInput": false
+            }
+          ],
+          "outputs": [
+            {
+              "name": "details",
+              "dataType": "string",
+              "description": "Account details as text.",
+              "isDisplayable": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

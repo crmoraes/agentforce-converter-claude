@@ -1,0 +1,113 @@
+system:
+    instructions: "You verify customers and then answer their account questions."
+    messages:
+        welcome: "Hi, I'll need to verify your identity before we continue."
+        error: "Sorry, something went wrong. Please try again."
+
+config:
+  default_agent_user: "verified_service_agent@acme.ext"
+  agent_label: "Verified Service Agent"
+  developer_name: "Verified_Service_Agent"
+  agent_type: "AgentforceServiceAgent"
+  description: "Service agent that verifies the customer before answering account questions."
+
+variables:
+    AttemptsRemaining: mutable number = 3
+        description: "How many verification attempts the customer has left."
+    ContactId: linked string
+        source: @MessagingEndUser.ContactId
+        description: "Linked Contact ID."
+    IsLockedOut: mutable boolean = False
+        description: "Whether the caller has exhausted verification attempts."
+    IsVerified: mutable boolean = False
+        description: "Whether the caller has been identity-verified."
+    VerifiedDOB: mutable date
+        description: "The DOB the caller provided (cleared after verification)."
+    VerifiedEmail: mutable string
+        description: "The email the caller provided (cleared after verification)."
+    VerificationStatus: mutable string = "PENDING"
+        description: "PENDING | IN_PROGRESS | VERIFIED | FAILED."
+
+language:
+    default_locale: "en_US"
+    additional_locales: ""
+    all_additional_locales: False
+
+connection messaging:
+    adaptive_response_allowed: True
+
+start_agent topic_selector:
+    label: "Topic Selector"
+    description: "Routes the user's request, gating sensitive topics on verification."
+    reasoning:
+        before_reasoning:
+            if @variables.IsLockedOut == True:
+                respond with "I can't continue — too many failed verification attempts. Please contact support."
+        instructions: ->
+            | If @variables.IsVerified == False, transition to @topic.customer_verification.
+            | Otherwise, if the user asks for account balance, transition to @topic.account_balance.
+
+topic account_balance:
+    label: "Account Balance"
+    description: "Returns the caller's current account balance."
+    reasoning:
+        before_reasoning:
+            if @variables.IsVerified == False:
+                transition to @topic.customer_verification
+        instructions: ->
+            | Only respond if the caller is verified.
+            | Use {!@variables.ContactId} to look up the balance.
+        actions:
+            get_balance: @actions.get_balance
+                with contactId = @variables.ContactId
+    actions:
+        get_balance:
+            description: "Returns balance for a contact."
+            require_user_confirmation: False
+            include_in_progress_indicator: True
+            target: "flow://Get_Balance"
+            inputs:
+                "contactId": string
+                    description: "Contact to look up."
+                    is_required: True
+                    is_user_input: False
+            outputs:
+                "balance": number
+                    description: "Current balance."
+                    is_displayable: True
+
+topic customer_verification:
+    label: "Customer Verification"
+    description: "Verifies the customer's identity before any sensitive action."
+    reasoning:
+        before_reasoning:
+            if @variables.AttemptsRemaining == 0:
+                set @variables.IsLockedOut = True
+                respond with "Too many failed attempts. I can't continue."
+        instructions: ->
+            | Verify the caller against the linked contact before transitioning to any other topic.
+            | Ask the user for their email and DOB. Compare to the linked Contact.
+            | Set IsVerified = True only after both fields match.
+        actions:
+            verify_contact: @actions.verify_contact
+                with email = @variables.VerifiedEmail
+                with dob = @variables.VerifiedDOB
+    actions:
+        verify_contact:
+            description: "Compares user-supplied identity fields to the linked Contact."
+            require_user_confirmation: False
+            include_in_progress_indicator: True
+            target: "apex://Verify_Contact"
+            inputs:
+                "email": string
+                    description: "User's email."
+                    is_required: True
+                    is_user_input: True
+                "dob": date
+                    description: "User's date of birth."
+                    is_required: True
+                    is_user_input: True
+            outputs:
+                "matched": boolean
+                    description: "Whether identity matched."
+                    is_displayable: False

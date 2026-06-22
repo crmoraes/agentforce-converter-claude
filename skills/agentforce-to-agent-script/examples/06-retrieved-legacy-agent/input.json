@@ -1,0 +1,106 @@
+{
+  "name": "Solar_Support_Agent",
+  "label": "Solar Support Agent",
+  "description": "Handles customer service requests for SolarCo — order status, returns, and general FAQ.",
+  "plannerRole": "TODO_REPLACE — describe the agent's role and persona for Solar Support Agent",
+  "plannerCompany": "TODO_REPLACE — describe your company's products or services",
+  "plannerToneType": "CASUAL",
+  "locale": "en_US",
+  "secondaryLocales": [],
+  "welcomeMessage": "Hi, I'm Solar Support Agent. How can I help you today?",
+  "id": "retrieved_Solar_Support_Agent",
+  "variables": [],
+  "plugins": [
+    {
+      "id": "",
+      "name": "Order_Status_16jKc0000004Cqw",
+      "localDevName": "Order_Status",
+      "label": "Order Status",
+      "description": "Handles order status enquiries for solar panel products.",
+      "scope": "Only answer order-status questions. Do not modify orders.",
+      "pluginType": "TOPIC",
+      "instructionDefinitions": [
+        {
+          "name": "instruction_always_call",
+          "label": "instruction_always_call",
+          "description": "Always call get_order_status before answering."
+        },
+        {
+          "name": "instruction_ask_email",
+          "label": "instruction_ask_email",
+          "description": "If the contact cannot be identified, ask the user for their order number."
+        }
+      ],
+      "functions": [
+        {
+          "name": "Get_Order_Status",
+          "label": "Get Order Status",
+          "description": "Retrieves the current status of a customer order.",
+          "invocationTarget": "Get_Order_Status",
+          "invocationTargetType": "flow",
+          "requireUserConfirmation": false,
+          "includeInProgressIndicator": true,
+          "inputs": [
+            {
+              "name": "orderId",
+              "dataType": "string",
+              "description": "The order ID to look up.",
+              "isRequired": true,
+              "isUserInput": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "orderStatus",
+              "dataType": "string",
+              "description": "Current status of the order.",
+              "isDisplayable": true,
+              "isUsedByPlanner": true
+            },
+            {
+              "name": "estimatedDelivery",
+              "dataType": "string",
+              "description": "Estimated delivery date.",
+              "isDisplayable": true,
+              "isUsedByPlanner": true
+            }
+          ]
+        }
+      ],
+      "canEscalate": false
+    },
+    {
+      "id": "",
+      "name": "Escalation_16jKc0000004Cqw",
+      "localDevName": "Escalation",
+      "label": "Escalation",
+      "description": "Handles requests from users who want to transfer to a live human agent.",
+      "scope": "Transfer to a live agent if the user explicitly asks for human assistance or has a complex issue.",
+      "pluginType": "TOPIC",
+      "instructionDefinitions": [
+        {
+          "name": "instruction_escalate_on_request",
+          "label": "instruction_escalate_on_request",
+          "description": "Escalate immediately if the user explicitly asks to speak to a human."
+        },
+        {
+          "name": "instruction_offer_case",
+          "label": "instruction_offer_case",
+          "description": "If escalation fails, offer to log a support case."
+        }
+      ],
+      "functions": [
+        {
+          "name": "TODO_REPLACE_EscalateToAgent",
+          "label": "TODO_REPLACE_EscalateToAgent",
+          "description": "TODO_REPLACE — function XML not found for EscalateToAgent",
+          "invocationTarget": "TODO_REPLACE_EscalateToAgent",
+          "invocationTargetType": "flow",
+          "inputs": [],
+          "outputs": []
+        }
+      ],
+      "canEscalate": true
+    }
+  ]
+}
