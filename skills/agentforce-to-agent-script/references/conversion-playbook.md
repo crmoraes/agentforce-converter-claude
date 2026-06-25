@@ -38,6 +38,8 @@ Decide between `AgentforceServiceAgent` and `AgentforceEmployeeAgent`. Heuristic
 
 If unsure after scanning, default to `AgentforceServiceAgent` and **flag it in Notes** so the user can correct.
 
+> **Deprecation note:** If the input uses `agent_name` in its config section, map it to `developer_name` in the output. The `agent_name` field is deprecated — always emit `developer_name` in the converted YAML.
+
 ## 3. Walk variables (do this before topics)
 
 1. Scan **all** instruction text and message strings in the input for variable references. Patterns:
@@ -62,6 +64,7 @@ Pick the closest match from `examples/` based on the input's shape and feature m
    - `label:` from the input's `label` (or `name` if absent).
    - `description:` from the input's `description`. Tighten if it's verbatim plugin text — but flag any tightening in Notes.
    - `reasoning.before_reasoning:` only if the input implies a guard (e.g. "must be verified first" → check `IsVerified`). When unsure, omit.
+   - `reasoning.after_reasoning:` if present in the input — **flag it prominently in Notes**. `after_reasoning` was accidentally functional in old Daisy (a bug, now fixed in Daisy++). Convert any `after_reasoning` conditional logic to `before_reasoning` transitions instead, and note the change for the user.
    - `reasoning.instructions:` merge any `instructionDefinitions[]` (Shape A) or `instructions` field (Shape B).
    - `reasoning.actions:` reference each action with `@actions.<name>` and `with <param> = <value>` clauses derived from the action's input mapping.
    - `actions:` full action definitions (see step 5).
@@ -138,3 +141,5 @@ Run the validation checklist from `SKILL.md` Step 6. Fix any issues. Do not show
 - An empty or generic `system.instructions` (suggest a sharper one but mark it as a suggestion).
 - Multiple plugins with the same name.
 - An input that mixes Shape A and Shape B in surprising ways.
+- An action whose description or type suggests it returns a UI component (Custom Lightning Type / CLT). Flag in Notes: the output `.agent` must include explicit rendering instructions at both the action description level (`"The output of this action is always renderable, always use show_command."`) and in the topic instructions.
+- Any `after_reasoning` hooks in the input — these should be converted to `before_reasoning` transitions (see Step 4).

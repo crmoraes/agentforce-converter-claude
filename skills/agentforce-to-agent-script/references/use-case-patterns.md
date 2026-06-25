@@ -1053,3 +1053,146 @@ Encoding wrong answers is worse than not encoding them — wrong policy persists
 - [ ] What is the handoff contract between orchestrator and specialists?
 - [ ] How are contracts versioned and communicated between teams?
 - [ ] What happens when a sub-agent fails or times out?
+
+---
+
+## 11. Key Architectural Principles
+
+These five principles, derived from 10 months of production deployments (June 2025 – June 2026), distinguish reliable enterprise agents from fragile ones.
+
+### Principle 1 — Separation of Concerns
+
+Agent Script defines rails (deterministic); reasoning runs inside them. Keep this boundary explicit.
+
+```
+Agent Script (Deterministic):
+START → Authenticate User → Route to Department → Execute Topic → END
+
+Within "Execute Topic" (Agentic):
+- LLM interprets user query
+- Retrieves relevant knowledge
+- Formulates natural language response
+```
+
+Why it works:
+- Critical paths (auth, routing) are predictable — failures are isolated and diagnosable
+- Creative tasks (answers, summaries) leverage LLM flexibility
+- Failures are isolated to specific reasoning steps, not systemic
+
+### Principle 2 — Determinism Over Intelligence
+
+Prefer predictable flows over purely AI-driven logic for any decision with a binary correct answer.
+
+**Avoid (Purely Agentic):**
+```
+"Decide if the user is eligible for a refund based on policy"
+Problem: LLM may interpret policy differently each time
+```
+
+**Prefer (Hybrid):**
+```apex
+// Apex Logic Action
+public static Boolean isRefundEligible(Case c) {
+    return c.CreatedDate > Date.today().addDays(-30)
+           && c.Type == 'Product Issue'
+           && c.Status != 'Closed';
+}
+```
+Agent uses the Apex result: "Based on your purchase date and issue type, you ARE eligible for a refund. Would you like me to process it?"
+
+Result: 100% consistent eligibility determination.
+
+**The Golden Rule:** If you can't accept the agent being wrong 5–10% of the time, don't use an LLM for that decision — use code.
+
+### Principle 3 — Progressive Disclosure
+
+Load expertise on-demand rather than stuffing all context upfront.
+
+**Avoid (Context Stuffing):**
+Agent Instructions: [15,000 words covering every scenario]
+
+**Prefer (Progressive):**
+- Global Instructions: [500 words — core behavior only]
+- Topic 1 — Product Info: [800 words — product expertise, loaded only when selected]
+- Topic 2 — Billing: [600 words — billing expertise, loaded only when selected]
+- Topic 3 — Technical: [1000 words — technical expertise, loaded only when selected]
+
+Flow: User asks question → Topic Selector routes → Topic-specific instructions loaded → Knowledge retriever adds 3–5 articles → Response generated with focused context.
+
+Benefits:
+- Faster routing (less context to process)
+- More relevant responses (focused expertise)
+- Easier maintenance (update one topic vs. entire agent)
+
+### Principle 4 — Skills-Based Architecture (Atomic Design)
+
+Each action should do one thing well. Design atomic, composable actions rather than monolithic ones.
+
+**Avoid (Monolithic):**
+```
+Action: "handleCustomerRequest"
+- Looks up account
+- Checks eligibility
+- Creates case
+- Sends email
+- Updates dashboard
+Problem: If email fails, entire action fails
+```
+
+**Prefer (Atomic Skills):**
+```
+Skill 1: lookupAccount      → Input: accountName     → Output: accountRecord
+Skill 2: checkEligibility   → Input: accountRecord   → Output: isEligible (Boolean)
+Skill 3: createCase         → Input: accountId, description → Output: caseId
+Skill 4: sendNotification   → Input: caseId, template → Output: success (Boolean)
+```
+
+Benefits:
+- Reusable across multiple topics
+- Easy to test individually
+- Failures isolated and recoverable
+
+### Principle 5 — Pre-Processing Over Runtime
+
+Generate complex summaries offline, retrieve at runtime. Avoid making the agent do heavy computation during a live session.
+
+**Avoid (Runtime Heavy):**
+Agent queries 50,000 opportunity records → analyzes win/loss ratios → calculates trends → generates summary → 45 second wait, timeout risk.
+
+**Prefer (Pre-processed):**
+```apex
+// Scheduled Apex (Daily 2 AM)
+public class QuarterlySummaryBatch {
+    // Processes all records
+    // Generates summaries per region/product
+    // Stores in QuarterlySummary__c object
+}
+```
+
+Agent Runtime: User asks "Summarize Q4 performance" → Agent queries: `SELECT Summary__c FROM QuarterlySummary__c WHERE Quarter__c = 'Q4 2025'` → Returns pre-generated 500-word summary → 2-second response.
+
+---
+
+## 12. Agent Maturity Evolution Path
+
+Use this framework to assess where a given deployment is today and what investment is needed to reach production-grade reliability.
+
+| Phase | Description | Characteristics | Typical Accuracy |
+|---|---|---|---|
+| **Phase 1** | Simple Prompt-Based Agent | Instructions only; basic Q&A; no deterministic actions | 40–60% |
+| **Phase 2** | Action-Enhanced Agent | Instructions + actions; data retrieval and updates | 60–75% |
+| **Phase 3** | Hybrid Deterministic + Agentic | Agent Script for critical paths; LLM for interpretation; pre-processed data | 75–90% |
+| **Phase 4** | Production-Ready Enterprise Agent | All of Phase 3 + observability, error handling, performance optimization, regression testing | 85–95% |
+
+**How to progress:**
+- Phase 1 → 2: Add actions for data retrieval and CRM updates
+- Phase 2 → 3: Add `before_reasoning` guards, variable state management, pre-processing for large data
+- Phase 3 → 4: Add Agent Analytics, regression test suites (20+ cases), monitoring alerts, performance optimization
+
+**Balance Framework:**
+
+| Dimension | Deterministic (Code) | Flexible (LLM) | Never Flexible |
+|---|---|---|---|
+| **Speed** | Fast lookups (<3 seconds) | Allow 10–15 seconds for complex analysis | N/A |
+| **Behavior** | Authentication, routing, transactions | Query interpretation, response formatting | Security, compliance, financial operations |
+| **Capability** | Launch with proven patterns (70% AI-driven) | Iterate toward advanced capabilities (90% AI-driven) | Always maintain deterministic guardrails |

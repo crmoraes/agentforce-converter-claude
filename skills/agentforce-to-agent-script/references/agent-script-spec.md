@@ -32,6 +32,8 @@
 22. [Action Chaining & Sequencing](#22-action-chaining--sequencing)
 23. [Variables: Lists & Index Iteration](#23-variables-lists--index-iteration)
 24. [Context Engineering](#24-context-engineering)
+25. [Daisy++ (Unified Planner) Migration](#25-daisy-unified-planner-migration)
+26. [Performance & Observability](#26-performance--observability)
 
 ---
 
@@ -58,6 +60,22 @@ The `config.agent_type` field must be one of:
 Inside a `reasoning:` block, instructions use one of two modes:
 - **Template mode** (`instructions: |`) — static text with simple variable injection only
 - **Procedural mode** (`instructions: ->`) — executes logic alongside text; all plain-text lines must be prefixed with `|`
+
+### Topic Design Architecture
+
+**Rule of 10:** No more than 10 topics per agent. The topic classification prompt degrades beyond this limit — keep the topic set small and semantically distinct.
+
+**Bottom-Up 4-Step Approach** (use when designing topics from scratch):
+1. **Inventory Granular Actions** — list every specific task the agent must perform (e.g., "Check Inventory", "Update Address").
+2. **Analyze Semantic Distance** — identify action pairs with similar descriptions. If "Troubleshooting" and "Product Support" descriptions overlap, they will cause misclassification.
+3. **Group for Semantic Distinction** — create topics that are semantically distinct from one another.
+4. **Define Classification Descriptions** — write a concise, one-sentence description per topic. This is the *only* metadata the engine uses to select a topic.
+
+**Critical — Instructions do NOT influence topic selection.** Only the Topic Name and Classification Description are sent to the topic selection prompt. Instructions only guide behavior *after* a topic is chosen. Over-investing in instructions to fix routing problems will not work — fix the descriptions instead.
+
+**Semantic Overlap Failure:** If two actions or topics in the same agent have nearly identical descriptions (e.g., "Modify Order" and "Update Shipment"), the reasoning engine will fluctuate between them non-deterministically. Maintain clear semantic distance between all topic and action descriptions.
+
+**Topic Selector anti-pattern — responding directly:** Without an explicit instruction in the topic selector such as `"THE ONLY purpose of this topic is to route. NEVER respond directly from this topic. ALWAYS route to an appropriate topic first."`, the agent may bypass routing and reply from the selector itself.
 
 ---
 
@@ -343,7 +361,8 @@ actions:
 |---|---|
 | `flow://FlowApiName` | Salesforce Flow |
 | `apex://ClassName` | Apex invocable method |
-| `generatePromptResponse://TemplateName` | Prompt Template (LLM sub-call) |
+| `<prompt://TemplateName>` | Prompt Template (LLM sub-call) — preferred format |
+| `generatePromptResponse://TemplateName` | Prompt Template (legacy format — avoid in new authoring) |
 | `api://EndpointName` | External API |
 | `externalService://ServiceName` | External Service |
 | `standardInvocableAction://ActionName` | Standard invocable action |
@@ -375,6 +394,33 @@ actions:
 
 **Pattern:** Large action responses (records, lists) → also add `filter_from_agent: True` to prevent state corruption from oversized payloads.
 
+### Stub (Placeholder) Actions
+
+Use placeholder stub actions to compile and validate agents without the backing Flow/Apex implementation being ready (available 260.14+). The action passes validation as long as the target follows the correct URI format — the backing implementation can be added later.
+
+```yaml
+actions:
+    get_order_details:
+        description: "Retrieves order details. (STUB — backing flow not yet deployed)"
+        target: "flow://Get_Order_Details_REPLACE_ME"
+        inputs:
+            "orderId": string
+                is_required: True
+        outputs:
+            "status": string
+                is_displayable: True
+```
+
+### model_config — Confirmed Models Only
+
+Only these models are confirmed for tool-calling (as of June 2026). Others fail **silently** at runtime:
+- `llmgateway__GPT41` (GPT-4.1) — default for general reasoning
+- `claude-sonnet-4` / `claude-haiku-4-5` — strong reasoning
+- `gemini-flash` (Gemini 3.x Flash) — high-volume, fast
+- `sfdc_ai__DefaultEinsteinHyperClassifier` — routing/classification only (~95ms), no `before/after_reasoning` hooks
+
+Do NOT configure `model_config` with untested models (e.g., GPT-3.5-turbo, other Anthropic model IDs not listed above). They fail silently at runtime.
+
 ---
 
 ## 6. @utils Utilities & Routing
@@ -386,6 +432,7 @@ actions:
 | `@utils.transition` | `@utils.transition to @topic.<name>` | Permanent handoff to another topic |
 | `@utils.escalate` | `@utils.escalate` | Transfer conversation to a live human agent |
 | `@utils.setVariables` | `@utils.setVariables` | Slot-fill multiple variables from conversation in a single LLM turn |
+| `@utils.end_session` | `@utils.end_session` | Terminate the session cleanly (available 260.14+). Use instead of leaving sessions orphaned after completion. |
 | `@topic.X` | `@topic.X` in `reasoning.actions` | Delegate to child topic; control returns to parent to synthesize response |
 
 > **Note:** `@utils.setVariables` is useful when you need to collect several values at once without calling a full action. The LLM fills the declared variables from the conversation context.
@@ -514,6 +561,28 @@ reasoning:
 - Use **capitalization** for hard boundaries: `ALWAYS`, `NEVER`, `DO NOT`
 - Use **RAG actions** (`retriever://`) for complex policies instead of hard-coding rules in instructions
 - Keep topics to **~25–40 lines** of instructions. Beyond that, decompose into phase topics.
+
+### Instruction Quality Pitfalls
+
+**Sequence Enforcement:** Agentforce treats separate UI instruction boxes as an unordered group. If Step A must happen before Step B, they MUST be combined into a single instruction block — do not rely on order of entry.
+
+**Strict Output Adherence (regulated industries):** In Legal/Finance contexts, use the `promptResponse` reference to prevent the agent from rephrasing validated outputs. Example: `"Do not change promptResponse output. Deliver the text exactly as provided."`
+
+**Avoid Overscripting:** Do not try to predict every conversational exchange.
+- Bad: `"If user says 'How are you', say 'I am an AI.'"`
+- Better: `"Maintain a professional and empathetic persona at all times."`
+
+**Instruction Drift & Context Rot:** In long conversations (20+ exchanges), agents can lose track of original constraints even with large context windows. An agent configured to recommend only specific product categories may start suggesting items outside those categories after extended sessions. Fix:
+- Periodically restate critical constraints in instructions.
+- Use "System Reminder" sections within instructions.
+- Use `before_reasoning` to re-evaluate key variable conditions on every turn.
+
+**Overloaded Instructions:** An agent with 50+ rules shows inconsistent behavior — it may follow rule #12 sometimes and ignore it depending on conversation flow. Fix with Layered Prompting:
+1. TIER 1: Generate a summary for all users.
+2. TIER 2: Ask "Would you like details for [specific role/context]?"
+3. Provide targeted response based on selection.
+
+**`after_reasoning` deprecation (post-Daisy++):** `after_reasoning` was accidentally functional in old Daisy — that behavior was a bug, now fixed. Remove all `after_reasoning` hooks and implement correct patterns using `before_reasoning` or topic transitions instead.
 
 ---
 
@@ -645,6 +714,22 @@ after_reasoning:
 11. **`is_user_input: False` on fields the user must provide**: Setting `is_user_input: False` tells the LLM the value is a system/internal parameter and it will not prompt the user for it. Only use this for params populated from variables or constants.
 
 12. **Monolithic topics**: Topics with hundreds of lines overload the LLM context window, causing hallucination and cognitive overload. Break into phase topics of ~25–40 lines each with deterministic `after_reasoning` transitions between them.
+
+13. **`#` characters in reasoning instructions**: `#` is parsed as a comment marker, causing cascading compile errors. Wrap channel names or any `#`-prefixed strings in **double** quotes (single quotes are not sufficient). Example: use `"#support-channel"` not `'#support-channel'`.
+
+14. **`set @variables.X = []` in the body**: The empty-list literal `[]` is only valid as a variable initializer (in the `variables:` block). Using it in an instruction body causes a runtime error. Use `= None` or a sentinel variable instead.
+
+15. **`complex_data_type_name` on primitive types**: Setting `complex_data_type_name` on `string`, `number`, or `boolean` action parameters is a hard error in 262.10. Only `object` and `list[object]` may carry `complex_data_type_name`.
+
+16. **`lightning__objectType` on record inputs**: Use `lightning__recordInfoType` (not `lightning__objectType`) for `UpdateRecordFields` and `recordDetailInput` parameters. Fixed in 260.13+.
+
+17. **Action fires twice**: If an action is called deterministically via `{!@actions.X}` in instructions, it will fire twice post-Daisy++ if the same action is also listed in `reasoning.actions`. Fix: remove it from `reasoning.actions` when calling it deterministically only.
+
+18. **`agent_name` is deprecated**: Use `developer_name` in `config:`. The `agent_name` field is legacy and will be removed in a future release.
+
+19. **Suppressing default follow-up prompts is non-deterministic**: The base system prompt injects follow-up question behavior. Override via `system:` instructions, but this works inconsistently — it sometimes suppresses, sometimes does not. This is a known platform limitation as of 260.13+.
+
+20. **Actions skipped in sequential logic (same-turn dependency)**: Action B depends on a variable set by Action A within the same reasoning loop iteration — Action B never executes because the variable isn't available yet. Fix: use a Two-Step Topic Pattern — Topic 1 gathers info and stores to variable (no conditional logic), Topic 2 reads stored variable and executes conditional logic. Alternative: move complex conditional logic to an Apex invocable method.
 
 ---
 
@@ -1099,6 +1184,62 @@ sf project retrieve start --json --metadata "Bot:My_Agent_Bot"
 7. **Check action output sizes** — large responses can corrupt session state; use `filter_from_agent: True`
 8. **Deactivate → republish** — when all else fails, deactivate the Bot, republish, and reactivate
 
+### Variable Management in Deployment
+
+**Variable Mapping Errors:** Deployment fails with "Variable 'X' not found" even though it's defined in source org. Cause: variables must exist in the target org BEFORE deploying the agent.
+
+Pre-Deployment Checklist:
+1. Document all variables (Name, Type, Default Value, which topics use them).
+2. In the target org, create variables FIRST: Setup > Agent > Variables.
+3. Then deploy the agent.
+4. Verify mappings in UI after deployment.
+
+**Auto-Generated Duplicate Variable Names:** If the UI auto-generates `userId_1`, `userId_2` duplicates — delete all versions, manually create ONE variable, reference it consistently.
+
+**Safe Variable Rename Process** (renaming in place causes metadata corruption — mappings are stored by ID, not name):
+1. Create a NEW variable with the desired name.
+2. Update ONE topic at a time to use the new variable.
+3. Test thoroughly after each topic update.
+4. After ALL topics are updated, delete the old variable.
+If already broken: clone the agent, rebuild variable mappings manually — no automated fix available.
+
+**Testing Variables During Development:** Can't test Topic Selector without runtime variables populated from previous topics. Create a `Dev_PopulateTestVars` Flow (trigger: Agent Session Start) that sets test variable values. Add `[TEST]` prefix to all responses when `$testMode = true`. Remove this flow before production deployment. Alternative: use Conversation Variables set in Test Conversation UI before running tests.
+
+### Character and Token Limits
+
+**65,000 Character Hard Limit:** Agent output is capped at 65,000 characters per response. An agent summarizing 100+ knowledge articles will hit this limit mid-generation, causing truncated outputs.
+
+Pre-Processing Model workaround:
+1. Create a custom field: `Summary__c` (Rich Text, 32K characters).
+2. Use a Scheduled Apex job to pre-generate summaries offline.
+3. Agent retrieves the pre-generated summary at runtime.
+4. Response stays well under the limit.
+
+**10,000 Tokens = 1 Action Credit:** An agent processing 200 case records in a single query may consume multiple action credits due to token usage, quickly exhausting the action budget.
+
+Smart Batching Pattern:
+- Initial query: `LIMIT 20` records.
+- Display summary with "Load More" option.
+- Subsequent queries: `WHERE Id IN :nextBatch`.
+- Lazy loading based on user interaction.
+
+Example SOQL:
+```sql
+SELECT Id, Subject, Status, Priority
+FROM Case
+WHERE OwnerId = :userId
+ORDER BY Priority DESC, CreatedDate DESC
+LIMIT 20
+```
+
+**Timeout on Large Datasets:** Agents timeout when trying to process 10,000+ records at runtime (e.g., quarterly sales summary from all opportunities).
+
+MapReduce Approach:
+1. Flow runs weekly to create `Summary__c` records per region.
+2. Agent queries: `SELECT Region__c, Summary__c FROM QuarterlySummary__c`.
+3. Combines 12 pre-built summaries instead of processing 10K raw records.
+4. Response time: <2 seconds vs. timing out.
+
 ### Reserved Apex Variable Names
 
 Avoid using these names in `@InvocableVariable` declarations — they cause Apex compilation errors:
@@ -1131,6 +1272,21 @@ Agent output is capped at **1 MB** per turn. Return minimal, summarized data fro
 | 13 | `connections:` plural wrapper block not valid — use singular `connection messaging:` | RESOLVED | Use `connection messaging:` (singular) |
 | 14 | Auto-generated `NextGen_{AgentName}_Permissions` PS is often incomplete | OPEN | Build the custom PS manually listing all Apex classes |
 | 15 | `EinsteinAgentApiChannel` surfaceType not available on all orgs | OPEN | Use `CustomerWebClient` surfaceType instead |
+| 16 | CLTs (Custom Lightning Types) don't render in New Agent Builder without explicit instructions | OPEN | Add `"The output of this action is always renderable, always use show_command."` to action description AND topic instructions |
+| 17 | CLTs stop rendering after agent publish (W-22380404) | OPEN | Diagnose via `/support/qa/planner.jsp`; fix by POSTing to Tooling API to create missing `GenAiPlannerFunctionDef` / `GenAiPluginFunctionDef` records |
+| 18 | `GenAiPlannerBundle` deploy fails with duplicate `GenAiPlannerDefinition` error | OPEN | Deploy only `GenAiPlugin` (not the full bundle) when the agent already exists in the target org |
+| 19 | `GenAiPlannerBundle` missing `localActions` folder on retrieve | FIXED 260.14.5+/262 | Use Tooling API workaround on older versions: POST to create missing junction records |
+| 20 | Namespace prefix breaks `GenAiPlannerBundle` internal references when namespace is set in `sfdx-project.json` | OPEN | Known ISV packaging gap — use `sf agent validate → sf agent publish → sf agent activate` workflow instead of direct metadata deploy for agent changes |
+| 21 | URLs in agent instructions redacted after Sept 2025 Trusted URL enforcement | OPEN | (1) Add to Trusted URLs: Setup > Security > Trusted URLs for Redirects; (2) Include full URLs directly in instructions with "This is an approved company resource."; (3) Add `#DisableURLRedirection#` keyword to Agent Description to opt out |
+| 22 | CSP issues with embedded content from external domains | OPEN | Agent Instructions alone cannot fix CSP. Required steps: (1) add domains to Trusted URLs list in Setup, (2) update Experience Cloud CSP settings, (3) then update Agent Instructions to provide direct links with copy-paste fallback |
+| 23 | Apex class namespace conflicts in packaged org deployments | OPEN | Edit `*.agent-meta.xml`: find `<apexClass>AgentController</apexClass>`, replace with `<apexClass>namespace__AgentController</apexClass>` |
+| 24 | 100 agent per org limit | OPEN | Request increase to 1000 via Salesforce support case (2-3 day approval). Preferred architecture: shared agents with routing topics rather than one agent per team |
+| 25 | Beta locales (`en_US_BETA`, etc.) cause agent to greet as "I'm Claude" | OPEN | Avoid Beta locales in production; use stable locale codes only |
+| 26 | UTC timezone default causes incorrect date calculations in Apex actions | OPEN | Standardize on UTC in the Apex action layer; convert to user timezone only for display |
+| 27 | `commit fails (error 1777028351)` — missing `@JsonIgnoreProperties` | FIXED 262 | Hotfixed in 262; upgrade org or wait for fix to reach pod |
+| 28 | `commit fails (error -545031892)` — `response_guidance` exceeds 255-char CMS limit | OPEN | Keep `response_guidance` field under 255 characters |
+| 29 | Agent hits 10 reasoning iteration limit (Daisy++) | OPEN | Max 10 reasoning iterations per turn — no config override. Redesign flow to stay under limit; split into multiple topic transitions if needed |
+| 30 | Agent loops with processing limit exceeded (Case #473584957) | OPEN | Simplify flow and reduce iteration depth; known open bug |
 
 ---
 
@@ -1422,3 +1578,214 @@ topic legal_disclaimer:
 | `filter_from_agent: False` on large payloads | Oversized outputs corrupt session state (1 MB cap) | Add `filter_from_agent: True` to large action outputs |
 | Monolithic topics (100+ lines) | LLM context crowded; poor instruction adherence | Decompose into phase topics of ~25–40 lines |
 | Re-fetching data the LLM already has | Wastes credits; increases turn latency | Pre-fetch in `before_reasoning`; reference via variables |
+| One global RAG retriever for all topics | Low retrieval accuracy (often 40%) — retriever must rank across unrelated domains | Use separate topic-scoped retrievers with narrowed data sources and prompt templates |
+
+### Strategy 7 — Topic-Scoped RAG Retrievers
+
+Using one global retriever for all topics produces low accuracy (observed 40% in production). Configure separate retrievers per topic with narrowed scope:
+
+```yaml
+# Topic: Product Questions
+# Knowledge Setup:
+#   Data Source: Product_KB__kav
+#   Categories: Products, Features, Specifications
+#   Prompt Template: "Answer only about product features and specs"
+
+# Topic: Billing Questions
+# Knowledge Setup:
+#   Data Source: Billing_KB__kav
+#   Categories: Invoices, Payments, Refunds
+#   Prompt Template: "Focus on billing and payment topics"
+```
+
+Result: Accuracy improved from 40% to 75%+ by narrowing retrieval scope (Navigator Agent production case).
+
+### Strategy 8 — Knowledge Article Quality Checklist
+
+Poor RAG accuracy is often caused by poor article quality, not retriever configuration. Before tuning retriever parameters, verify article quality:
+
+1. Remove duplicate articles (consolidate versions).
+2. Target length: 500–2000 words per article.
+3. Add structured headings (H2, H3) for better semantic chunking.
+4. Include a `Summary__c` field (150–200 words) — retrievers use this for ranking.
+5. Add rich metadata fields: `Category__c`, `SubCategory__c`, `Keywords__c`, `Language__c`, `LastReviewDate__c`.
+
+Recommended article structure:
+```
+# [Title]
+## Summary
+[150-word overview — used by retriever for ranking]
+
+## Details
+[Main content with clear sections]
+
+## Related Topics
+[Links to 3-5 related articles]
+```
+
+### Strategy 9 — Language-Aware Retrieval
+
+For multilingual agents, filter knowledge retrieval by the user's language to prevent citing English articles to non-English speakers:
+
+```yaml
+# SOQL filter in knowledge action:
+# WHERE Language__c = :userLanguage AND Status = 'Published'
+# 
+# In instructions:
+# "Detect the user's language from the conversation.
+#  Filter knowledge retrieval to match the detected language.
+#  If no match found, state: 'I don't have information in [language]. Would you like English results?'"
+```
+
+### Strategy 10 — Context Injection Pattern (Agent Hydration)
+
+For agents that pull incorrect information from previous conversation history, apply the Agent Hydration Pattern:
+
+1. Detailed role description in Agent Instructions (anchors the agent's identity).
+2. Glossary retrieval via flows at conversation start (loads domain context).
+3. Conversation history injection for continuity (explicit, not implicit).
+4. Explicit directives to ignore conversation context variables when needed: `"Focus only on the current request. Do not reference earlier conversation turns unless the user explicitly asks you to."`
+
+---
+
+## 25. Daisy++ (Unified Planner) Migration
+
+Daisy++ (Unified Planner) became GA on April 10, 2026. All new NGA agents use it by default. All existing NGA agents were upgraded by April 24, 2026. Legacy Builder agents are NOT affected.
+
+### Key Behavioral Changes Post-Daisy++
+
+**1. Conditional logic in `reasoning.instructions` is silently IGNORED.**
+Conditions like `if @variables.X == ''` inside the `instructions:` block are silently ignored. Fix: move all conditional transitions to `before_reasoning`.
+
+**2. Action chaining failure on error.**
+In old Daisy, if an action failed, remaining chained actions stopped. In Daisy++, remaining actions in the sequence continue regardless. Be explicit about error handling — check action output status before proceeding.
+
+**3. `after_reasoning` was a Daisy bug, not a feature.**
+`after_reasoning` was accidentally functional in old Daisy due to a bug. That bug is fixed in Daisy++. Remove `after_reasoning` hooks and implement correct patterns using `before_reasoning` or topic transitions.
+
+**4. Multiple Prompt Template outputs: only the final output shown.**
+If multiple Prompt Template actions are chained, only the final reasoning output is shown; intermediate outputs are redacted. Restructure to surface intermediate outputs explicitly via `set @variables.X = @outputs.promptResponse` before the next action.
+
+**5. Max 10 reasoning iterations per turn.**
+Complex flows that require many back-and-forth reasoning cycles will hit this cap. No configuration override exists today. Design agents to stay under the limit — split complex flows into multiple topic transitions.
+
+### HyperClassifier vs GPT-4.1 for Routing
+
+| Model | Use For | Speed | Limitations |
+|---|---|---|---|
+| `EinsteinHyperClassifier` (`sfdc_ai__DefaultEinsteinHyperClassifier`) | Topic/sub-agent classification (routing) only | ~95ms | No `before/after_reasoning` hooks; only `@utils.transition` available; classification-only — no rich reasoning or response generation |
+| GPT-4.1 (default) | General reasoning, tool selection, response generation | ~2.6s | None — full feature support |
+| `claude-sonnet-4` / `claude-haiku-4-5` | Strong reasoning, good balance | Medium | Confirm tool-calling support before use |
+| `gemini-flash` | High-volume, fast responses | Fast | Confirm tool-calling support before use |
+
+**Pattern:** Use HyperClassifier for the `agent_router` node only; use GPT-4.1 (or Sonnet 4 / Gemini Flash) for all other subagents.
+
+### Workaround to Revert to Legacy Daisy Planner (Temporary)
+
+```yaml
+config:
+  additional_parameter__disable_graph_runtime: True
+```
+
+**Note:** After adding this flag, remove and re-add Knowledge actions to the subagent to restore knowledge retrieval.
+
+### CLT (Custom Lightning Type) Rendering
+
+CLT rendering is LLM-driven and non-deterministic. Without explicit instructions, the planner may not use `show_command`.
+
+**Fix — Explicit Rendering Instructions:**
+
+At the action level (description):
+```
+"Returns a UI component. The output of this action is always renderable, always use show_command."
+```
+
+At the topic level (instructions):
+```
+"Run @actions.My_CLT_Action. The output of this action is always renderable. Always use show_command to display the result to the user."
+```
+
+**Additional CLT constraints:**
+- **ASA Draft Preview** CANNOT render CLTs (Messaging license restriction). Use AEA Preview instead, or activate and test via Enhanced Chat v2 deployment settings.
+- **ECv2 Connection Required:** Agent Script must configure Enhanced Chat v2 connection for Lightning Types to render client-side. Without ECv2, `formatType` degrades to text. Disable Adaptive Response Formats (incompatible with ECv2) via Agent Builder → Connections menu.
+- **Voice + Rich Web Chat:** `Atlas__VoiceAgent` planner breaks CLT rendering. For dual-channel (voice + web chat), use separate agents sharing the same GenAiPlugin/GenAiFunctions with different planner types, OR use a single Agent Script agent (the script-agent runtime handles planner-type differences internally).
+- **Cross-subagent CLT limitation:** The CLT-rendering action must be declared in the **same subagent** that renders it. Cross-subagent `@subagent.X` or `@actions.X` references for rendering do not work.
+
+---
+
+## 26. Performance & Observability
+
+### Speed Optimization Techniques
+
+**1. Reduce Action Count:**
+Combine SOQL queries where possible. Use fewer but richer actions — each action call costs ~20 credits and adds latency.
+
+**2. Streaming Responses:**
+Add to topic instructions: `"Begin your response immediately with available information. Add details as you gather them."` This creates a streaming-like experience.
+
+Example output pattern: `"I found your account... [loading recent cases]... here are your 3 open cases with details."`
+
+**3. Set User Expectations:**
+`"I'm analyzing your request across multiple systems. This will take about 10 seconds..."` — users tolerate wait time far better when progress is visible and the task completes successfully.
+
+**4. Model Selection for Performance:**
+Configure per topic in Topic Settings based on workload:
+- `llmgateway__GPT41` (default): general reasoning, ~2.6s
+- `claude-sonnet-4` / `claude-haiku-4-5`: strong reasoning, good balance
+- `gemini-flash`: fast, good for high-volume
+- `EinsteinHyperClassifier`: routing only, fastest (~95ms)
+
+**Note:** GPT-3.5-turbo and other untested models fail silently at runtime — do not use.
+
+### Agent Analytics
+
+Enable to gain visibility into where agent performance is lagging.
+
+Setup: `Setup > Agent Analytics > Enable`
+
+**Key Metrics Dashboard:**
+- **Deflection Rate:** % resolved without human escalation
+- **Escalation Rate:** % transferred to human
+- **Average Actions per Session:** high values indicate over-reliance on data fetches
+- **Topic Coverage:** % queries correctly matched to topics
+- **Action Success Rate:** low values indicate backing logic failures
+- **Session Duration:** long sessions indicate friction or unclear instructions
+
+**Debugging Resources:**
+- Session Tracing (STDM): `Setup > Session Tracing` — filter by Agent Sessions to inspect reasoning path
+- Agent Analytics: `Setup > Agent Analytics`
+- Debug Logs: `Setup > Debug Logs > Enable for Agent User`
+
+**Weekly Review Pattern:**
+1. Identify topics with >30% escalation rate.
+2. Investigate actions with <80% success rate.
+3. Optimize slowest topics first (sort by Session Duration descending).
+
+Example finding: "Password Reset" topic with 60% escalation. Root cause: action required manager approval for standard users. Fix: add self-service flow for standard users. Result: 15% escalation rate.
+
+### Key Architectural Principles
+
+These five principles, derived from 10 months of production deployments, distinguish reliable enterprise agents from fragile ones:
+
+**1. Separation of Concerns**
+Agent Script defines rails (deterministic); reasoning runs inside them.
+- Critical paths (auth, routing, transactions) → `before_reasoning`, explicit transitions, Apex
+- Creative tasks (answers, summaries, recommendations) → LLM reasoning
+
+**2. Determinism Over Intelligence**
+Prefer predictable flows over purely AI-driven logic for business-critical decisions. Example: use Apex to determine refund eligibility rather than asking the LLM to decide from policy text — result is 100% consistent vs. ~90% consistent.
+
+**3. Progressive Disclosure**
+Avoid context stuffing (15,000-word system instructions). Instead:
+- Global Instructions: ~500 words (core behavior, universal guardrails)
+- Topic 1 — Product Info: ~800 words (loaded only when topic selected)
+- Topic 2 — Billing: ~600 words (loaded only when topic selected)
+Only the relevant topic's instructions are loaded, giving the LLM a focused context for each task.
+
+**4. Skills-Based Architecture (Atomic Design)**
+Each action should do one thing well. Avoid monolithic actions that look up an account, check eligibility, create a case, send an email, and update a dashboard in one call — if email fails, everything fails. Build atomic actions and chain them explicitly.
+
+**5. Pre-Processing Over Runtime**
+Generate complex summaries offline (scheduled Apex), retrieve at runtime. Avoids 45-second waits and timeout risk on large datasets. A scheduled `QuarterlySummaryBatch` that pre-computes summaries into `Summary__c` objects reduces a query over 50,000 records to a 2-second lookup.
+
+**The Golden Rule:** If you can't accept the agent being wrong 5–10% of the time, don't use an LLM for that decision — use code.
